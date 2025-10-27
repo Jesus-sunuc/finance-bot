@@ -487,4 +487,4 @@ Features:
 | 5 | Nov 25, Dec 3 | 20 points | 142.5 |
 | 6 | Dec 6 | 3.5 points (buffer) | 146 |
 
-**Total: 150 points**
+**Total: 146 points**
