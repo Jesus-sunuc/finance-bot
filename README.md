@@ -166,8 +166,7 @@ Features:
 **Estimates:**
 
 Rubric items:
-- [ ] Authentication and user account support (5 points - complete)
-- [ ] Deployed in production (10 points - complete)
+- [ ] Deployed in production (15 points - complete)
 
 Features:
 - [ ] Keycloak realm configuration
