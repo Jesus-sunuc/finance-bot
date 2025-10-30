@@ -6,7 +6,7 @@ export const Spinner: FC<{ className?: string }> = ({ className = "" }) => {
       <div
         className={`
           w-12 h-12 
-          border-[3px] border-current border-t-transparent 
+          border-[3px] border-gray-300 border-t-transparent 
           rounded-full 
           animate-spin
           ${className}

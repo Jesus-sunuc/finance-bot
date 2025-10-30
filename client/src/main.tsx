@@ -5,7 +5,6 @@ import "./App.css";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { getQueryClient } from "./services/queryClient.tsx";
-import { ThemeProvider } from "./components/theme/ThemeProvider.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { LoadingAndErrorHandling } from "./components/LoadingAndErrorHandling.tsx";
 import { AuthProvider, type AuthProviderProps } from "react-oidc-context";
@@ -42,11 +41,9 @@ createRoot(document.getElementById("root")!).render(
     <LoadingAndErrorHandling>
       <QueryClientProvider client={queryClient}>
         <AuthProvider {...oidcConfig}>
-        <ThemeProvider>
           <BrowserRouter>
             <App />
           </BrowserRouter>
-        </ThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
     </LoadingAndErrorHandling>
