@@ -2,11 +2,13 @@ import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import { Toaster } from "react-hot-toast";
-import { NavBar } from "./components/NavBar";
 import { useAuth } from "react-oidc-context";
 import { useEffect } from "react";
 import { setAccessTokenGetter } from "./utils/axiosClient";
+import { LoadingSpinner } from "./components/auth/LoadingSpinner";
+import { AuthError } from "./components/auth/AuthError";
+import { LoginPage } from "./components/auth/LoginPage";
+import { AuthenticatedLayout } from "./components/layout/AuthenticatedLayout";
 
 function App() {
   const auth = useAuth();
@@ -15,52 +17,41 @@ function App() {
     setAccessTokenGetter(() => auth.user?.access_token);
   }, [auth.user?.access_token]);
 
-  switch (auth.activeNavigator) {
-    case "signinSilent":
-      return <div>Signing you in...</div>;
-    case "signoutRedirect":
-      return <div>Signing you out...</div>;
+  if (auth.activeNavigator === "signinSilent") {
+    return <LoadingSpinner message="Signing you in..." />;
+  }
+
+  if (auth.activeNavigator === "signoutRedirect") {
+    return <LoadingSpinner message="Signing you out..." />;
   }
 
   if (auth.isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (auth.error) {
-    return <div>Oops... {auth.error.message}</div>;
+    return (
+      <AuthError
+        message={auth.error.message}
+        onRetry={() => void auth.signinRedirect()}
+      />
+    );
   }
 
   if (auth.isAuthenticated) {
     console.log("User email:", auth.user?.profile.email);
 
     return (
-      <>
-        <Toaster />
-        <NavBar />
-        <div className="container">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
-        </div>
-      </>
+      <AuthenticatedLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </AuthenticatedLayout>
     );
   }
 
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Welcome to AI Chat</h1>
-        <p className="mb-4">Please log in to continue</p>
-        <button
-          onClick={() => void auth.signinRedirect()}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-lg"
-        >
-          Log in
-        </button>
-      </div>
-    </div>
-  );
+  return <LoginPage onSignIn={() => void auth.signinRedirect()} />;
 }
 
 export default App;
