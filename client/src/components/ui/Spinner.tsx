@@ -1,10 +1,17 @@
 import { type FC } from "react";
-import style from "./Spinner.module.scss";
 
 export const Spinner: FC<{ className?: string }> = ({ className = "" }) => {
   return (
-    <div className="d-flex justify-content-center">
-      <div className={style.spinner + " " + className}></div>
+    <div className="flex justify-center">
+      <div
+        className={`
+          w-12 h-12 
+          border-[3px] border-current border-t-transparent 
+          rounded-full 
+          animate-spin
+          ${className}
+        `}
+      ></div>
     </div>
   );
 };

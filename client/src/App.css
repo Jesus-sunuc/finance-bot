@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Custom icon font */
+@font-face {
+  font-family: "icomoon";
+  src: url("./assets/fonts/customIcons.eot?khipsj");
+  src: url("./assets/fonts/customIcons.eot?khipsj#iefix")
+      format("embedded-opentype"),
+    url("./assets/fonts/customIcons.ttf?khipsj") format("truetype"),
+    url("./assets/fonts/customIcons.woff?khipsj") format("woff"),
+    url("./assets/fonts/customIcons.svg?khipsj#icomoon") format("svg");
+}
+
+.icon::before,
+[class^="icon-"]::before,
+[class*=" icon-"]::before {
+  display: inline-block;
+  font-family: "icomoon" !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -0.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-instructure_lg:before {
+  content: "\e900";
+}
+
+/* Custom utility classes */
+.text-shadow {
+  text-shadow: 2px 3px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Print styles */
+@media print {
+  .print-black,
+  .print-black * {
+    color: black !important;
+  }
+}
