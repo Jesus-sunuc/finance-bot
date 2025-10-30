@@ -1,7 +1,7 @@
-import { usefinanceQuery } from "../hooks/FinanceHooks";
+import { useFinanceQuery } from "../hooks/FinanceHooks";
 
 const Home = () => {
-  const { data: finances } = usefinanceQuery();
+  const { data: finances } = useFinanceQuery();
   return (
     <div>
       {finances.map((finance, index) => (
