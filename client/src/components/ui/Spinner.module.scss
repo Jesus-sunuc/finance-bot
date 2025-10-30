@@ -1,0 +1,27 @@
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+$spinner-margin: 1em;
+$spinner-vertical-size: 50%;
+
+$spinner-size: 3em;
+$spinner-border-size: 0.2em;
+$spinner-animation-period: 0.8s;
+
+.spinner {
+  content: "";
+  box-sizing: border-box;
+  top: $spinner-vertical-size;
+  left: $spinner-vertical-size;
+  width: $spinner-size;
+  height: $spinner-size;
+  margin-top: $spinner-margin;
+  margin-left: $spinner-margin;
+  border-radius: $spinner-vertical-size;
+  border-top: $spinner-border-size solid;
+  border-right: $spinner-border-size solid transparent;
+  animation: spinner $spinner-animation-period linear infinite;
+}
