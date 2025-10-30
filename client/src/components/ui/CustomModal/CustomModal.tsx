@@ -8,6 +8,7 @@ export interface CustomModalControls {
   id: string;
   label: string;
   isHidden: () => boolean;
+  isOpen: boolean;
 }
 
 export type ModalButton = FC<{
@@ -30,55 +31,57 @@ export const CustomModal: FC<{
   children,
 }) => {
   useEffect(() => {
-    const customModalElement = document.getElementById(controls.id);
-    const listener = () => {
-      if (onShow) onShow();
-    };
-    if (customModalElement) {
-      customModalElement.addEventListener("shown.bs.modal", listener);
+    if (controls.isOpen && onShow) {
+      onShow();
     }
-    return () =>
-      customModalElement?.removeEventListener("show.bs.modal", listener);
-  }, [controls.id, onShow]);
+  }, [controls.isOpen, onShow]);
 
   useEffect(() => {
-    const customModalElement = document.getElementById(controls.id);
-    const listener = () => {
-      if (onClose) onClose();
-    };
-    if (customModalElement) {
-      customModalElement.addEventListener("hidden.bs.modal", listener);
+    if (!controls.isOpen && onClose) {
+      onClose();
     }
-    return () =>
-      customModalElement?.removeEventListener("hidden.bs.modal", listener);
-  }, [controls.id, onClose]);
+  }, [controls.isOpen, onClose]);
 
   const portalElement = document.querySelector("#custom-modal-portal");
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (dismissible && e.target === e.currentTarget) {
+      controls.hide();
+    }
+  };
 
   return (
     <>
       {ModalButton ? (
         <ModalButton showModal={controls.show} />
       ) : (
-        <button className="btn btn-bold w-100" onClick={controls.show}>
+        <button
+          className="w-full py-2 px-4 bg-badger-orange text-white rounded hover:bg-badger-orange-600 transition-colors"
+          onClick={controls.show}
+        >
           {controls.label}
         </button>
       )}
       {portalElement &&
+        controls.isOpen &&
         createPortal(
           <div
-            className="modal fade"
-            data-bs-backdrop={dismissible ? "true" : "static"}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+            onClick={handleBackdropClick}
             id={controls.id}
-            tabIndex={-1}
           >
             <div
-              className={
-                `modal-dialog modal-dialog-centered modal-dialog-scrollable ` +
-                controls.sizeClass
-              }
+              className={`
+                bg-white dark:bg-gray-800 
+                rounded-lg shadow-xl 
+                overflow-y-auto 
+                max-h-[90vh] 
+                w-full mx-4
+                ${controls.sizeClass}
+              `}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="modal-content">{children}</div>
+              {children}
             </div>
           </div>,
           portalElement

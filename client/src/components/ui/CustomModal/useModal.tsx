@@ -1,7 +1,5 @@
-import { Modal } from "bootstrap";
 import { useState } from "react";
 import type { CustomModalControls } from "./CustomModal";
-
 
 export const useModal = (
   label: string,
@@ -13,47 +11,30 @@ export const useModal = (
       .replace(/ /g, "")
       .replace(/[^\w\s']|_/g, "")}${random}`
   );
-  const validSizes = [
-    "sm",
-    "lg",
-    "xl",
-    "fullscreen",
-    "fullscreen-sm-down",
-    "fullscreen-md-down",
-    "fullscreen-lg-down",
-    "fullscreen-xl-down",
-    "fullscreen-xxl-down",
-  ];
-  const sizeClass = size.includes("fullscreen")
-    ? validSizes.includes(size)
-      ? `modal-xl modal-${size}`
-      : ``
-    : validSizes.includes(size)
-      ? `modal-${size}`
-      : ``;
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Map Bootstrap size classes to Tailwind classes
+  const getSizeClass = () => {
+    if (size === "sm") return "max-w-sm";
+    if (size === "lg") return "max-w-4xl";
+    if (size === "xl") return "max-w-6xl";
+    if (size === "fullscreen") return "max-w-full h-full";
+    return "max-w-lg"; // default
+  };
+
+  const sizeClass = getSizeClass();
 
   const hide = () => {
-    const modalElement = document.getElementById(id);
-    if (modalElement) {
-      const modal = Modal.getInstance(modalElement);
-      if (modal) {
-        modal.hide();
-      }
-    }
+    setIsOpen(false);
   };
+
   const show = () => {
-    const modalElement = document.getElementById(id);
-    if (modalElement) {
-      const modal = new Modal(modalElement);
-      if (modal) {
-        modal.show();
-      }
-    }
+    setIsOpen(true);
   };
 
   const isHidden = () => {
-    const modal = document.getElementById(id);
-    return !modal?.style.display;
+    return !isOpen;
   };
-  return { hide, show, sizeClass, id, label, isHidden };
+
+  return { hide, show, sizeClass, id, label, isHidden, isOpen };
 };
