@@ -1,38 +1,30 @@
 @import "tailwindcss";
 
-/* Custom icon font */
-@font-face {
-  font-family: "icomoon";
-  src: url("./assets/fonts/customIcons.eot?khipsj");
-  src: url("./assets/fonts/customIcons.eot?khipsj#iefix")
-      format("embedded-opentype"),
-    url("./assets/fonts/customIcons.ttf?khipsj") format("truetype"),
-    url("./assets/fonts/customIcons.woff?khipsj") format("woff"),
-    url("./assets/fonts/customIcons.svg?khipsj#icomoon") format("svg");
-}
+/* FinanceBot Custom Styles */
 
-.icon::before,
-[class^="icon-"]::before,
-[class*=" icon-"]::before {
-  display: inline-block;
-  font-family: "icomoon" !important;
-  font-style: normal;
-  font-weight: normal !important;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  vertical-align: -0.125em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.icon-instructure_lg:before {
-  content: "\e900";
+/* Smooth transitions for theme switching */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Custom utility classes */
 .text-shadow {
-  text-shadow: 2px 3px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.card-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Financial number formatting */
+.currency {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 /* Print styles */
@@ -40,5 +32,9 @@
   .print-black,
   .print-black * {
     color: black !important;
+  }
+
+  .no-print {
+    display: none !important;
   }
 }
