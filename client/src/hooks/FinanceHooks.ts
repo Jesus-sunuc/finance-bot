@@ -6,7 +6,7 @@ export const financeKeys = {
   all: ["finances"] as const,
 };
 
-export const usefinanceQuery = () => {
+export const useFinanceQuery = () => {
   return useSuspenseQuery({
     queryKey: financeKeys.all,
     queryFn: async (): Promise<finance[]> => {
