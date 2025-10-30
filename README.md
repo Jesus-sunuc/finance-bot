@@ -129,7 +129,7 @@
 **Estimates:**
 
 Rubric items:
-- [ ] CI/CD pipeline setup (10 points)
+- [*] CI/CD pipeline setup (10 points)
 - [ ] Docker containerization (10 points - complete)
 - [ ] Developer type helping (5 points)
 
