@@ -1,0 +1,25 @@
+{
+  "name": "FastAPI + React Dev Env",
+  "dockerComposeFile": ["./docker-compose.yml"],
+  "service": "editor",
+  "workspaceFolder": "/app/",
+  "remoteEnv": {
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "irongeek.vscode-env",
+        "ms-python.python",
+        "esbenp.prettier-vscode",
+        "dsznajder.es7-react-js-snippets",
+        "dbaeumer.vscode-eslint",
+        "ms-python.black-formatter",
+        "humao.rest-client"
+        
+      ]
+    }
+  },
+  "forwardPorts": [],
+  "remoteUser": "developer"
+}
