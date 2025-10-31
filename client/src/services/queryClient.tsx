@@ -1,44 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import toast, { ErrorIcon, CheckmarkIcon } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
-import type { JSX } from "react";
 
 const addErrorAsToast = async (error: any) => {
   console.error(error);
   const message = getErrorMessage(error);
 
-  toast(
-    (t: any) => (
-      <div className="row">
-        <div className="col-auto my-auto">
-          <ErrorIcon />
-        </div>
-        <div className="col my-auto">
-          <div className="white-space">{message}</div>
-          <div>
-            <a
-              href="https://snow.kualibuild.com/app/651eeebc32976c013a4c4739/run"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Report Bug
-            </a>
-          </div>
-        </div>
-        <div className="col-auto my-auto">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="btn btn-outline-secondary btn-sm"
-          >
-            <i className="bi bi-x"></i>
-          </button>
-        </div>
-      </div>
-    ),
-    {
-      duration: Infinity,
-    }
-  );
+  toast.error(message, {
+    duration: 5000,
+  });
 };
 
 export function getErrorMessage(error: any) {
@@ -63,40 +33,6 @@ export function getErrorMessage(error: any) {
   return "Error With Request";
 }
 
-export function createInfoToast(
-  children: JSX.Element,
-  onClose: () => void = () => {}
-) {
-  const closeHandler = (t: any) => {
-    toast.dismiss(t.id);
-    onClose();
-  };
-  toast(
-    (t: any) => (
-      <div className="row">
-        <div className="col-auto my-auto">
-          <i className="bi bi-info-circle-fill"></i>
-        </div>
-        <div className="col my-auto">{children}</div>
-        <div className="col-auto my-auto">
-          <button
-            onClick={() => closeHandler(t)}
-            className="btn btn-outline-secondary py-1"
-          >
-            X
-          </button>
-        </div>
-      </div>
-    ),
-    {
-      duration: Infinity,
-      style: {
-        maxWidth: "75em",
-      },
-    }
-  );
-}
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -119,90 +55,3 @@ const queryClient = new QueryClient({
 export const getQueryClient = () => {
   return queryClient;
 };
-
-export function createErrorToast(message: string) {
-  toast(
-    (t: any) => (
-      <div className="row">
-        <div className="col-auto my-auto">
-          <ErrorIcon />
-        </div>
-        <div className="col my-auto"> {message}</div>
-        <div className="col-auto my-auto">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="btn btn-outline-secondary btn-sm"
-          >
-            <i className="bi-x" />
-          </button>
-        </div>
-      </div>
-    ),
-    {
-      duration: Infinity,
-      style: {
-        maxWidth: "75em",
-      },
-    }
-  );
-}
-
-export function createErrorToastHtml(message: string, isSuccess?: boolean) {
-  toast(
-    (t: any) => (
-      <div className="row">
-        <div className="col-auto my-auto">
-          {isSuccess ? <CheckmarkIcon /> : <ErrorIcon />}
-        </div>
-        <div
-          className="col my-auto"
-          dangerouslySetInnerHTML={{ __html: message }}
-        />
-        <div className="col-auto my-auto">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="btn btn-outline-secondary py-1"
-          >
-            X
-          </button>
-        </div>
-      </div>
-    ),
-    {
-      duration: Infinity,
-      style: {
-        maxWidth: "75em",
-      },
-    }
-  );
-}
-
-export function createSuccessToast(
-  message: string,
-  duration: number = Infinity
-) {
-  toast(
-    (t: any) => (
-      <div className="row">
-        <div className="col-auto my-auto">
-          <CheckmarkIcon />
-        </div>
-        <div className="col my-auto"> {message}</div>
-        <div className="col-auto my-auto">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="btn btn-outline-secondary py-1"
-          >
-            X
-          </button>
-        </div>
-      </div>
-    ),
-    {
-      duration: duration,
-      style: {
-        maxWidth: "75em",
-      },
-    }
-  );
-}

@@ -1,66 +1,82 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const isoDateTimeFormat =
-  /^(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)?)$/;
-const isoDateTimeTimezoneFormat =
-  /^(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)?[+-][0-2]\d:[0-5]\d)$/;
 
-const isoDateFormat = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATETIME_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+const ISO_DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATETIME_WITH_TIMEZONE_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?[+-]\d{2}:\d{2}$/;
 
-export function handleDates(body: any): any {
-  // console.log(body, body instanceof Array);
-  // if (body instanceof Array) {
-  //   console.log("array", body);
 
-  //   return body.map(o => handleDates(o))
-  // }
-  if (body === null || body === undefined || typeof body !== "object")
-    return body;
-
-  for (const key of Object.keys(body)) {
-    const value = body[key];
-
-    if (isIsoDateTimeTimezoneString(value)) body[key] = parseIsoDatetime(value);
-    else if (isIsoDateString(value)) body[key] = parseISODate(value);
-    else if (isIsoDateTimeString(value)) body[key] = parseIsoDatetime(value);
-    else if (typeof value === "object") handleDates(value);
-  }
-  return body;
-}
-
-function parseISODate(input: string): Date {
-  return new Date(
-    new Date(input).getFullYear(),
-    new Date(input).getMonth(),
-    new Date(input).getDate() + 1
-  );
-}
-
-function parseIsoDatetime(input: string): Date {
-  // eslint-disable-next-line
-  var dt = input.split(/[: \.T-]/).map(parseFloat);
-
-  const year = dt[0];
-  const month = dt[1] - 1;
-  const day = dt[2];
-  const hour = dt[3] || 0;
-  const minute = dt[4] || 0;
-  const second = dt[5] || 0;
-  const millisecond =
-    (dt[6] && parseInt(dt[6].toString().substring(0, 3))) || 0;
-
-  return new Date(year, month, day, hour, minute, second, millisecond);
-}
-
-function isIsoDateTimeString(value: any): boolean {
-  return value && typeof value === "string" && isoDateTimeFormat.test(value);
-}
-
-function isIsoDateString(value: any): boolean {
-  return value && typeof value === "string" && isoDateFormat.test(value);
-}
-
-function isIsoDateTimeTimezoneString(value: any): boolean {
+function matchesDateTimeFormat(value: any): boolean {
   return (
-    value && typeof value === "string" && isoDateTimeTimezoneFormat.test(value)
+    typeof value === "string" &&
+    value.length > 0 &&
+    ISO_DATETIME_PATTERN.test(value)
   );
+}
+
+
+function matchesDateOnlyFormat(value: any): boolean {
+  return (
+    typeof value === "string" &&
+    value.length === 10 &&
+    ISO_DATE_ONLY_PATTERN.test(value)
+  );
+}
+
+
+function matchesDateTimeWithTimezoneFormat(value: any): boolean {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    ISO_DATETIME_WITH_TIMEZONE_PATTERN.test(value)
+  );
+}
+
+
+function convertDateOnlyString(dateStr: string): Date {
+  const tempDate = new Date(dateStr);
+  const year = tempDate.getFullYear();
+  const month = tempDate.getMonth();
+  const day = tempDate.getDate() + 1;
+  return new Date(year, month, day);
+}
+
+function convertDateTimeString(dateTimeStr: string): Date {
+  const parts = dateTimeStr.split(/[T:\-.\s]/g).map(Number);
+
+  const [year, month, day, hour = 0, minute = 0, second = 0] = parts;
+
+  const millisecond = parts[6]
+    ? parseInt(String(parts[6]).substring(0, 3).padEnd(3, "0"))
+    : 0;
+
+  return new Date(year, month - 1, day, hour, minute, second, millisecond);
+}
+
+
+export function handleDates(data: any): any {
+  if (data === null || data === undefined || typeof data !== "object") {
+    return data;
+  }
+
+  for (const property in data) {
+    if (!Object.prototype.hasOwnProperty.call(data, property)) {
+      continue;
+    }
+
+    const value = data[property];
+
+    if (matchesDateTimeWithTimezoneFormat(value)) {
+      data[property] = convertDateTimeString(value);
+    } else if (matchesDateOnlyFormat(value)) {
+      data[property] = convertDateOnlyString(value);
+    } else if (matchesDateTimeFormat(value)) {
+      data[property] = convertDateTimeString(value);
+    } else if (typeof value === "object") {
+      handleDates(value);
+    }
+  }
+
+  return data;
 }
