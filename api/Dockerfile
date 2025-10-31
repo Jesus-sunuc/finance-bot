@@ -1,20 +1,22 @@
 FROM almalinux:9
 
 RUN dnf -y install \
-      https://download.oracle.com/otn_software/linux/instantclient/213000/oracle-instantclient-basic-21.3.0.0.0-1.el8.x86_64.rpm \
       python3.11 \
       python3.11-pip \
       python3.11-devel \
       gcc && \
+    pip3.11 install --upgrade pip && \
     dnf clean all && \
-    rm -rf /var/cache/yum && \
-    pip3.11 install --upgrade pip
+    rm -rf /var/cache/yum
 
 WORKDIR /app
 
 COPY ./requirements.txt requirements.txt
-
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+RUN dnf -y remove gcc python3.11-devel && \
+    dnf clean all && \
+    rm -rf /var/cache/yum
 
 COPY ./src src
 
