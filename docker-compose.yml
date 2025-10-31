@@ -1,0 +1,52 @@
+services:
+  client:
+    container_name: finance_client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    container_name: finance_api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8080"
+    environment:
+      PG_DB: finance
+      PG_USER: financeUser
+      PG_PASSWORD: finance1!
+      PG_HOST: finance_db
+      TZ: America/Denver
+    depends_on:
+      finance_db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  finance_db:
+    image: postgres:17-alpine
+    container_name: finance_db
+    environment:
+      POSTGRES_DB: finance
+      POSTGRES_USER: financeUser
+      POSTGRES_PASSWORD: finance1!
+      TZ: America/Denver
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./api/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financeUser -d finance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
