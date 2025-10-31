@@ -1,77 +1,67 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const isArray = function (a: any): boolean {
-  return Array.isArray(a);
-};
 
-const isObject = function (o: any): boolean {
-  return o === Object(o) && !isArray(o) && typeof o !== "function";
-};
+function convertToCamelCase(str: string): string {
+  return str.replace(/[_-](\w)/g, (_, char) => char.toUpperCase());
+}
 
-const toCamel = (s: string): string => {
-  return s.replace(/([-_][a-z])/gi, ($1: string) => {
-    return $1.toUpperCase().replace("-", "").replace("_", "");
-  });
-};
 
-const to_snake = (s: string): string => {
-  return s.replace(/([A-Z])/g, ($1: string) => {
-    return "_" + $1.toLowerCase();
-  });
-};
+function convertToSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
 
-export const snakeToCamel = <T>(o: any): T => {
-  if (isObject(o)) {
-    const n: { [key: string]: any } = {};
+function isPlainObject(value: any): boolean {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !(value instanceof Date)
+  );
+}
 
-    Object.keys(o).forEach((k) => {
-      n[toCamel(k)] = snakeToCamel(o[k]);
-    });
 
-    return n as T;
-  } else if (isArray(o)) {
-    return o.map((i: any) => {
-      return snakeToCamel(i);
-    }) as any;
+export const snakeToCamel = <T>(data: any): T => {
+  if (Array.isArray(data)) {
+    return data.map((item) => snakeToCamel(item)) as any;
   }
 
-  return o as T;
-};
+  if (isPlainObject(data)) {
+    const transformed: Record<string, any> = {};
 
-export const camel_to_snake = <T>(o: any): T => {
-  if (isObject(o)) {
-    const n: { [key: string]: any } = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const camelKey = convertToCamelCase(key);
+        transformed[camelKey] = snakeToCamel(data[key]);
+      }
+    }
 
-    Object.keys(o).forEach((k) => {
-      n[to_snake(k)] = camel_to_snake(o[k]);
-    });
-
-    return n as T;
-  } else if (isArray(o)) {
-    return o.map((i: any) => {
-      return camel_to_snake(i);
-    }) as any;
+    return transformed as T;
   }
 
-  return o as T;
+  return data as T;
 };
 
-export const camel_to_snake_serializing_date = <T>(o: any): T => {
-  if (o instanceof Date) {
-    const isoString = o.toISOString();
-    return isoString.replace(/\.\d{3}Z$/, "Z") as any;
-  } else if (isObject(o)) {
-    const n: { [key: string]: any } = {};
 
-    Object.keys(o).forEach((k) => {
-      n[to_snake(k)] = camel_to_snake_serializing_date(o[k]);
-    });
-
-    return n as T;
-  } else if (isArray(o)) {
-    return o.map((i: any) => {
-      return camel_to_snake_serializing_date(i);
-    }) as any;
+export const camel_to_snake_serializing_date = <T>(data: any): T => {
+  if (data instanceof Date) {
+    return data.toISOString().replace(/\.\d{3}Z$/, "Z") as any;
   }
 
-  return o as T;
+  if (Array.isArray(data)) {
+    return data.map((item) => camel_to_snake_serializing_date(item)) as any;
+  }
+
+  if (isPlainObject(data)) {
+    const transformed: Record<string, any> = {};
+
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const snakeKey = convertToSnakeCase(key);
+        transformed[snakeKey] = camel_to_snake_serializing_date(data[key]);
+      }
+    }
+
+    return transformed as T;
+  }
+
+  return data as T;
 };

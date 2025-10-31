@@ -20,9 +20,11 @@ export const LoadingAndErrorHandling: FC<{
                 <div className="text-center">{errorDisplay}</div>
               ) : (
                 <div className="text-center">
-                  <div className="p-3">{getErrorMessage(props.error)}</div>
+                  <div className="p-3 text-red-600 dark:text-red-400">
+                    {getErrorMessage(props.error)}
+                  </div>
                   <button
-                    className="btn btn-outline-secondary"
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     onClick={() => props.resetErrorBoundary()}
                   >
                     Try again
