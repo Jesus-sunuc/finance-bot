@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: database-init
+  namespace: finance-bot
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-db
+        image: postgres:17-alpine
+        command: 
+        - sh
+        - -c
+        - |
+          until pg_isready -h finance-db -U financeUser; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+          echo "Database is ready, initializing schema..."
+          psql -h finance-db -U financeUser -d finance -f /schema/schema.sql
+          echo "Schema initialized successfully!"
+        env:
+        - name: PGPASSWORD
+          value: "finance1!"
+        volumeMounts:
+        - name: schema
+          mountPath: /schema
+      volumes:
+      - name: schema
+        configMap:
+          name: database-schema

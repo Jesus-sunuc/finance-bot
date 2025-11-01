@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-schema
+  namespace: finance-bot
+data:
+  schema.sql: |
+    -- Database initialization script
+    drop table if exists finance cascade;
+
+    create table finance (
+        id serial primary key,
+        name text not null,
+        created_at timestamp default current_timestamp
+    );

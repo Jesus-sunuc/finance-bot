@@ -17,11 +17,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Deploy database schema ConfigMap
+        run: kubectl apply -f kube/database-schema-configmap.yml
+
       - name: Deploy database deployment
         run: kubectl apply -f kube/database-dep.yml
 
       - name: Deploy database service
         run: kubectl apply -f kube/database-svc.yml
+
+      - name: Initialize database schema
+        run: |
+          kubectl delete job database-init -n finance-bot --ignore-not-found=true
+          kubectl apply -f kube/database-init-job.yml
+          kubectl wait --for=condition=complete --timeout=60s job/database-init -n finance-bot
 
       - name: Deploy backend deployment
         run: kubectl apply -f kube/backend-dep.yml
