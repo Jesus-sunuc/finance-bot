@@ -129,7 +129,7 @@
 **Estimates:**
 
 Rubric items:
-- [ ] CI/CD pipeline setup (10 points)
+- [x] CI/CD pipeline setup (10 points)
 - [x] Docker containerization (10 points - complete)
 - [x] Developer type helping (5 points)
 
@@ -140,7 +140,7 @@ Features:
 - [x] Dockerfile for frontend (multi-stage build)
 - [x] Dockerfile for backend
 - [x] docker-compose.yml for local development
-- [ ] GitHub Actions workflow file
+- [x] GitHub Actions workflow file
 - [x] Linting setup (ESLint, Black, mypy, Prettier)
 
 **Delivered:**
@@ -166,27 +166,43 @@ Features:
 **Estimates:**
 
 Rubric items:
-- [ ] Deployed in production (15 points - complete)
+- [x] Deployed in production (15 points - complete)
 
 Features:
-- [ ] Keycloak realm configuration
-- [ ] Keycloak client setup
-- [ ] Frontend: Login/logout flows
-- [ ] Frontend: Token management and refresh
-- [ ] Backend: Keycloak token validation
-- [ ] Kubernetes manifests (Deployment, Service, Ingress)
-- [ ] Kubernetes ConfigMaps for environment variables
-- [ ] Kubernetes Secrets for API keys
-- [ ] Deploy to class Kubernetes cluster
-- [ ] Verify public URL accessibility
+- [x] Keycloak realm configuration
+- [x] Keycloak client setup
+- [x] Frontend: Login/logout flows
+- [x] Frontend: Token management and refresh
+- [x] Kubernetes manifests (Deployment, Service, Ingress)
+- [x] Kubernetes ConfigMaps for environment variables
+- [x] Kubernetes Secrets for API keys
+- [x] Deploy to class Kubernetes cluster
+- [x] Verify public URL accessibility
 - [ ] Health check endpoints (/health)
 
 **Delivered:**
 
 Rubric Items:
-
+- [x] CI/CD pipeline setup (10 points) - GitHub Actions for frontend and backend Docker builds
+- [x] Deployed in production (15 points) - Live at https://finance-jesus.duckdns.org
+- [x] Docker containerization (10 points) - Multi-stage builds with optimization
 
 Features:
+- [x] GitHub Actions workflows (prod-api.yml, prod-client.yml, deploy-kube.yml)
+- [x] Automated Docker image builds and pushes to Docker Hub
+- [x] Self-hosted runner configuration
+- [x] Keycloak OIDC authentication integration
+- [x] React OIDC context with token management
+- [x] Login/logout flows with protected routes
+- [x] Kubernetes deployment manifests (finance-api, finance-client, finance-db)
+- [x] Kubernetes services (ClusterIP)
+- [x] Kubernetes ingresses with TLS (Let's Encrypt)
+- [x] Database initialization with ConfigMap and Job
+- [x] DuckDNS domain configuration (finance-jesus.duckdns.org)
+- [x] Production deployment on class Kubernetes cluster
+- [x] NavBar component with navigation and user display
+- [x] About page
+- [x] Home page with finance data display
 
 
 ---
