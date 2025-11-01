@@ -1,0 +1,42 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'kube/**'
+      - '.github/workflows/deploy-kube.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend deployment
+        run: kubectl apply -f kube/frontend-dep.yml
+
+      - name: Deploy frontend service
+        run: kubectl apply -f kube/frontend-svc.yml
+
+      - name: Deploy frontend ingress
+        run: kubectl apply -f kube/frontend-ingress.yml
+
+      - name: Deploy backend deployment
+        run: kubectl apply -f kube/backend-dep.yml
+
+      - name: Deploy backend service
+        run: kubectl apply -f kube/backend-svc.yml
+
+      - name: Deploy backend ingress
+        run: kubectl apply -f kube/backend-ingress.yml
+
+      - name: Deploy database deployment
+        run: kubectl apply -f kube/database-dep.yml
+
+      - name: Deploy database service
+        run: kubectl apply -f kube/database-svc.yml

@@ -13,7 +13,7 @@ const queryClient = getQueryClient();
 
 const oidcConfig: AuthProviderProps = {
   authority: "https://auth-dev.snowse.io/realms/DevRealm",
-  client_id: "jesus-chat",
+  client_id: "finance-bot",
   redirect_uri: window.location.origin + "/",
   post_logout_redirect_uri: window.location.origin + "/",
 
