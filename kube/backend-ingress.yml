@@ -9,10 +9,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - finance-bot.duckdns.org
+    - finance-jesus.duckdns.org
     secretName: finance-api-tls
   rules:
-  - host: finance-bot.duckdns.org
+  - host: finance-jesus.duckdns.org
     http:
       paths:
       - path: /api
