@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: finance-api
   namespace: finance-bot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: finance-api
   template:
     metadata:
       labels:
-        app: backend
+        app: finance-api
     spec:
       containers:
-      - name: backend
-        image: jesus6190/finance-backend:latest
+      - name: finance-api
+        image: jesus6190/finance-backend:1.0.1
         ports:
         - containerPort: 8080
         env:
@@ -26,6 +26,6 @@ spec:
         - name: PG_PASSWORD
           value: "finance1!"
         - name: PG_HOST
-          value: "database"
+          value: "finance-db"
         - name: TZ
           value: "America/Denver"

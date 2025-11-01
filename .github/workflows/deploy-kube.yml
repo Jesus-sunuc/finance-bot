@@ -17,14 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy frontend deployment
-        run: kubectl apply -f kube/frontend-dep.yml
+      - name: Deploy database deployment
+        run: kubectl apply -f kube/database-dep.yml
 
-      - name: Deploy frontend service
-        run: kubectl apply -f kube/frontend-svc.yml
-
-      - name: Deploy frontend ingress
-        run: kubectl apply -f kube/frontend-ingress.yml
+      - name: Deploy database service
+        run: kubectl apply -f kube/database-svc.yml
 
       - name: Deploy backend deployment
         run: kubectl apply -f kube/backend-dep.yml
@@ -35,8 +32,11 @@ jobs:
       - name: Deploy backend ingress
         run: kubectl apply -f kube/backend-ingress.yml
 
-      - name: Deploy database deployment
-        run: kubectl apply -f kube/database-dep.yml
+      - name: Deploy frontend deployment
+        run: kubectl apply -f kube/frontend-dep.yml
 
-      - name: Deploy database service
-        run: kubectl apply -f kube/database-svc.yml
+      - name: Deploy frontend service
+        run: kubectl apply -f kube/frontend-svc.yml
+
+      - name: Deploy frontend ingress
+        run: kubectl apply -f kube/frontend-ingress.yml

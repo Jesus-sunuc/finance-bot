@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: database
+  name: finance-db
   namespace: finance-bot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: database
+      app: finance-db
   template:
     metadata:
       labels:
-        app: database
+        app: finance-db
     spec:
       containers:
-      - name: postgres
+      - name: finance-db
         image: postgres:17-alpine
         ports:
         - containerPort: 5432
