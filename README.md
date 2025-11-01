@@ -178,7 +178,6 @@ Features:
 - [x] Kubernetes Secrets for API keys
 - [x] Deploy to class Kubernetes cluster
 - [x] Verify public URL accessibility
-- [ ] Health check endpoints (/health)
 
 **Delivered:**
 
