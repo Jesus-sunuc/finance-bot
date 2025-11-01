@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: database
+  name: finance-db
   namespace: finance-bot
 spec:
   selector:
-    app: database
+    app: finance-db
   ports:
   - port: 5432
     targetPort: 5432

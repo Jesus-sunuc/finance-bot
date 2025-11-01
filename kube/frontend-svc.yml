@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: finance-client
   namespace: finance-bot
 spec:
   selector:
-    app: frontend
+    app: finance-client
   ports:
   - port: 80
     targetPort: 80
