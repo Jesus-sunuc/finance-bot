@@ -6,10 +6,10 @@ interface LoginPageProps {
 
 export const LoginPage: FC<LoginPageProps> = ({ onSignIn }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-500 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-2xl mb-4 shadow-lg">
             <svg
               className="w-12 h-12 text-white"
               fill="none"
@@ -44,7 +44,7 @@ export const LoginPage: FC<LoginPageProps> = ({ onSignIn }) => {
 
           <div className="space-y-3 mb-8">
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
+              <div className="shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
                 <svg
                   className="w-4 h-4 text-green-600 dark:text-green-400"
                   fill="none"
@@ -66,7 +66,7 @@ export const LoginPage: FC<LoginPageProps> = ({ onSignIn }) => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
+              <div className="shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
                 <svg
                   className="w-4 h-4 text-green-600 dark:text-green-400"
                   fill="none"
@@ -88,7 +88,7 @@ export const LoginPage: FC<LoginPageProps> = ({ onSignIn }) => {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
+              <div className="shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mt-0.5">
                 <svg
                   className="w-4 h-4 text-green-600 dark:text-green-400"
                   fill="none"
@@ -113,7 +113,7 @@ export const LoginPage: FC<LoginPageProps> = ({ onSignIn }) => {
 
           <button
             onClick={onSignIn}
-            className="w-full py-3.5 px-6 bg-gradient-to-r border-1 from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 group"
+            className="w-full py-3.5 px-6 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 group"
           >
             <span>Sign In to Continue</span>
             <svg
