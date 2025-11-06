@@ -1,14 +1,24 @@
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import Home from "./pages/Home";
+import Landing from "./pages/Landing";
+import Dashboard from "./pages/Dashboard";
+import Chat from "./pages/Chat";
+import Expenses from "./pages/Expenses";
+import Budgets from "./pages/Budgets";
+import Reports from "./pages/Reports";
+import ReceiptScanner from "./pages/ReceiptScanner";
+import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
+import Analytics from "./pages/Analytics";
 import About from "./pages/About";
 import { useAuth } from "react-oidc-context";
 import { useEffect } from "react";
 import { setAccessTokenGetter } from "./utils/axiosClient";
 import { LoadingSpinner } from "./components/auth/LoadingSpinner";
 import { AuthError } from "./components/auth/AuthError";
-import { LoginPage } from "./components/auth/LoginPage";
 import { AuthenticatedLayout } from "./components/layout/AuthenticatedLayout";
+import { PublicLayout } from "./components/layout/PublicLayout";
 
 function App() {
   const auth = useAuth();
@@ -39,19 +49,34 @@ function App() {
   }
 
   if (auth.isAuthenticated) {
-    console.log("User email:", auth.user?.profile.email);
-
     return (
       <AuthenticatedLayout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/budgets" element={<Budgets />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/scanner" element={<ReceiptScanner />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </AuthenticatedLayout>
     );
   }
 
-  return <LoginPage onSignIn={() => void auth.signinRedirect()} />;
+  return (
+    <PublicLayout>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    </PublicLayout>
+  );
 }
 
 export default App;
