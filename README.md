@@ -1,5 +1,49 @@
 # FinanceBot: AI-Powered Personal Finance Assistant
 
+## Development Setup
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Running with Hot Reload (Development)
+
+The project uses separate Docker configurations for development and production:
+
+- **Development**: `Dockerfile.dev` files with hot reload enabled
+- **Production**: `Dockerfile` files with optimized builds for Kubernetes
+
+#### Start the development environment:
+
+```bash
+docker-compose up --build
+```
+
+This will start:
+- **Frontend** (React + Vite): http://localhost:8080 with hot reload
+- **Backend** (FastAPI): http://localhost:8000 with auto-reload
+- **Database** (PostgreSQL): localhost:5432
+
+#### Making changes:
+
+- **Frontend**: Edit files in `client/src/` - changes will auto-refresh in browser
+- **Backend**: Edit files in `api/src/` - FastAPI will auto-reload the server
+- **Database schema**: Changes to `api/schema.sql` require recreating the database volume
+
+#### Stopping the environment:
+
+```bash
+docker-compose down
+```
+
+#### Rebuild after dependency changes:
+
+```bash
+docker-compose up --build
+```
+
+---
+
 # Feature List
 
 ### **Core Features**

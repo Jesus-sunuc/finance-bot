@@ -3,9 +3,18 @@ services:
     container_name: finance_client
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
-      - "8080:80"
+      - "8080:8080"
+    volumes:
+      - ./client/src:/app/src
+      - ./client/public:/app/public
+      - ./client/index.html:/app/index.html
+      - ./client/vite.config.ts:/app/vite.config.ts
+      - ./client/tailwind.config.js:/app/tailwind.config.js
+      - ./client/tsconfig.json:/app/tsconfig.json
+      - ./client/tsconfig.app.json:/app/tsconfig.app.json
+      - /app/node_modules
     depends_on:
       - api
     restart: unless-stopped
@@ -14,9 +23,11 @@ services:
     container_name: finance_api
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "8000:8080"
+    volumes:
+      - ./api/src:/app/src
     environment:
       PG_DB: finance
       PG_USER: financeUser
