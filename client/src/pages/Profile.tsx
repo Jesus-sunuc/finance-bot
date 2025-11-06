@@ -50,23 +50,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
-          Account Actions
-        </h3>
-        <div className="space-y-3">
-          <button className="w-full px-4 py-3 text-left bg-gray-900 hover:bg-gray-700 rounded-lg text-gray-100 transition-colors">
-            Export Data
-          </button>
-          <button className="w-full px-4 py-3 text-left bg-gray-900 hover:bg-gray-700 rounded-lg text-gray-100 transition-colors">
-            Change Password
-          </button>
-          <button className="w-full px-4 py-3 text-left bg-red-900/30 hover:bg-red-900/50 rounded-lg text-red-400 transition-colors">
-            Delete Account
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
