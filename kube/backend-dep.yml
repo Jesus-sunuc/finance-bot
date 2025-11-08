@@ -29,3 +29,19 @@ spec:
           value: "finance-db"
         - name: TZ
           value: "America/Denver"
+        # Notion API Configuration
+        - name: NOTION_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: notion-secrets
+              key: notion-api-key
+        - name: NOTION_EXPENSES_DB_ID
+          valueFrom:
+            secretKeyRef:
+              name: notion-secrets
+              key: expenses-db-id
+        - name: NOTION_BUDGETS_DB_ID
+          valueFrom:
+            secretKeyRef:
+              name: notion-secrets
+              key: budgets-db-id
