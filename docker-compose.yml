@@ -28,6 +28,8 @@ services:
       - "8000:8080"
     volumes:
       - ./api/src:/app/src
+    env_file:
+      - ./api/.env
     environment:
       PG_DB: finance
       PG_USER: financeUser
