@@ -329,9 +329,17 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Toasts/notifications (5 points) - react-hot-toast with success/error notifications
+- [x] Error handling - render errors (5 points) - ErrorBoundary with QueryErrorResetBoundary
+- [x] Data persisted on server (5 points) - PostgreSQL database operational
 
 Features:
+- [x] react-hot-toast integration (configured in main.tsx)
+- [x] Toast notifications on mutations (create/update/delete expenses)
+- [x] Error boundary component (LoadingAndErrorHandling.tsx)
+- [x] Global Suspense with loading spinner
+- [x] PostgreSQL database setup in docker-compose
+- [x] Database connection in FastAPI (already operational from Check-in 2)
 
 
 ---
@@ -363,9 +371,24 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Network calls - read data (5 points) - GET /api/expenses with React Query
+- [x] Network calls - write data (5 points) - POST/PUT/DELETE /api/expenses with mutations
+- [x] Data persisted on server (5 points - Notion) - Full CRUD to Notion databases
 
 Features:
+- [x] Notion API integration setup (notion-client with API key and database IDs)
+- [x] Notion Expenses database schema (Amount, Category, Merchant, Date, Description)
+- [x] Backend: GET /api/expenses endpoint (with filtering for valid expenses)
+- [x] Backend: GET /api/expenses/{id} endpoint
+- [x] Backend: POST /api/expenses endpoint (dynamic property matching)
+- [x] Backend: PUT /api/expenses/{id} endpoint
+- [x] Backend: DELETE /api/expenses/{id} endpoint (soft delete/archive)
+- [x] Notion service class for CRUD operations (NotionService with error handling)
+- [x] Error handling decorator for consistent API responses
+- [x] Expenses page connected to real data (full CRUD UI with modal forms)
+- [x] Axios setup with interceptors (snake/camel case conversion, date parsing, auth tokens)
+- [x] TypeScript models for type safety (Expense, ExpenseCreate, ExpenseUpdate)
+- [x] React Query hooks (useExpensesQuery, useCreateExpense, useUpdateExpense, useDeleteExpense)
 
 
 ---
