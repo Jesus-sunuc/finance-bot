@@ -2,14 +2,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from src.router import finance_router
+from src.router import expenses_router
 
 
 import logging
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 
 
-app = FastAPI()
+app = FastAPI(title="FinanceBot API", version="1.0.0")
+
+# Enable CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080", "https://finance-jesus.duckdns.org"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 logging.getLogger("uvicorn.access").addFilter(lambda _: False)
 
@@ -19,9 +29,9 @@ router = APIRouter(prefix="/api")
 
 @router.get("/health")
 def health_check():
-    return True
+    return {"status": "healthy", "service": "FinanceBot API"}
 
 
-router.include_router(finance_router.router)
+router.include_router(expenses_router.router)
 
 app.include_router(router)
