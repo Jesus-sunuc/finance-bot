@@ -31,11 +31,9 @@ services:
     env_file:
       - ./api/.env
     environment:
-      PG_DB: finance
-      PG_USER: financeUser
-      PG_PASSWORD: finance1!
-      PG_HOST: finance_db
-      TZ: America/Denver
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_TOKEN=${AI_TOKEN}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
     depends_on:
       finance_db:
         condition: service_healthy
