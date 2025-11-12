@@ -19,6 +19,7 @@ import { LoadingSpinner } from "./components/auth/LoadingSpinner";
 import { AuthError } from "./components/auth/AuthError";
 import { AuthenticatedLayout } from "./components/layout/AuthenticatedLayout";
 import { PublicLayout } from "./components/layout/PublicLayout";
+import { Toaster } from "./utils/toast";
 
 function App() {
   const auth = useAuth();
@@ -51,6 +52,7 @@ function App() {
   if (auth.isAuthenticated) {
     return (
       <AuthenticatedLayout>
+        <Toaster />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

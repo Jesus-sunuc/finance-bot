@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models.agent import ChatRequest, ChatResponse, AddExpenseRequest, DeleteTransactionRequest, GenerateReportRequest, AgentDecision
+from src.models.agent import ChatRequest, ChatResponse, AddExpenseRequest, DeleteTransactionRequest, GenerateReportRequest, SetBudgetRequest, AgentDecision
 from src.service.agent_service import AgentService
 from src.repository.agent_repository import AgentRepository
 from src.utils.decorators import handle_notion_errors
@@ -246,4 +246,60 @@ async def generate_report(request: GenerateReportRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generating report: {str(e)}"
+        )
+
+
+@router.post("/set-budget", response_model=ChatResponse)
+@handle_notion_errors
+async def set_budget(request: SetBudgetRequest):
+    try:
+        result = agent_service.set_budget_goal(request.text)
+        
+        from src.models.agent import ActionType, AgentState
+        
+        if not result.get("success"):
+            decision = AgentDecision(
+                user_message=request.text,
+                agent_state=AgentState.COMPLETED,
+                llm_reasoning="Failed to set budget",
+                action_taken=ActionType.ERROR,
+                result=result
+            )
+            agent_repository.log_decision(decision)
+            
+            return ChatResponse(
+                message=result.get("message", "Failed to set budget"),
+                reasoning="Budget setting failed",
+                action_taken=ActionType.ERROR,
+                state=AgentState.COMPLETED,
+                data=result
+            )
+        
+        budget = result.get("budget", {})
+        action = result.get("action", "set")
+        
+        decision = AgentDecision(
+            user_message=request.text,
+            agent_state=AgentState.COMPLETED,
+            llm_reasoning=f"{action.capitalize()} budget for {budget.get('category')}",
+            action_taken=ActionType.SET_BUDGET,
+            result=result
+        )
+        agent_repository.log_decision(decision)
+        
+        return ChatResponse(
+            message=result.get("message", "Budget set successfully"),
+            reasoning=f"Budget {action}",
+            action_taken=ActionType.SET_BUDGET,
+            state=AgentState.COMPLETED,
+            data={**result, "navigate_to": "/budgets"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in set-budget endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error setting budget: {str(e)}"
         )

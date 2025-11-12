@@ -514,10 +514,37 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Function 4: Set Budget Goal (2.5 points) - Fully implemented with AI parsing
+- [x] 1+ autonomous action (5 points) - Budget progress sidebar auto-displays
+- [x] Error handling - API errors (5 points) - Comprehensive error handling with retries
 
 Features:
+- [x] Set Budget Goal function implementation - Natural language parsing via LLM
+- [x] POST /api/agent/set-budget endpoint - Creates or updates budgets
+- [x] Budget model system - BudgetCreate, BudgetUpdate, Budget Pydantic models
+- [x] GET /api/budgets endpoints - Full CRUD operations for budgets
+- [x] Budget progress sidebar component - Slide-in animation with progress bars
+- [x] Sidebar slide-in/out animations - Smooth transitions with backdrop
+- [x] Dashboard budget widget with real-time updates - Shows top 3 budgets
+- [x] Budget statistics cards - Total spent, budget remaining, transactions, total budget
+- [x] Color-coded progress indicators - Green (<70%), yellow (<90%), red (≥90%)
+- [x] Axios interceptors for error handling - Request timeout and retry logic
+- [x] Retry logic for failed requests - Exponential backoff (1s, 2s, 4s)
+- [x] User-friendly error messages - Toast notifications for success/error
+- [x] Toast notification system - react-hot-toast integration
+- [x] Enhanced error messages - Detailed error handling with type extraction
+- [x] 30-second request timeout - Prevents hanging requests
+- [x] Notion budgets database integration - Category, Amount, Period, Spent, Start Date
+- [x] Budget parsing with confidence scores - LLM extracts budget details
+- [x] Create/update budget logic - Checks for existing budgets before creating
+- [x] Budget sidebar triggers on SET_BUDGET action - Auto-displays after budget creation
+- [x] Dashboard real-time budget display - React Query auto-refresh
 
+Example Usage:
+```
+User: "Set my dining budget to $400 this month"
+Agent: Parses budget details → Creates/updates budget → Shows sidebar → Updates dashboard
+```
 
 ---
 
