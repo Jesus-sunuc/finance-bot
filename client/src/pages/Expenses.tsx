@@ -119,7 +119,7 @@ const Expenses = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">{expense.merchant}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-900/30 text-primary-400">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full text-gray-100">
                       {expense.category}
                     </span>
                   </td>
@@ -130,13 +130,15 @@ const Expenses = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
                     <button
                       onClick={() => handleEdit(expense)}
-                      className="text-primary-400 hover:text-primary-300"
+                      style={{ cursor: "pointer" }}
+                      className="bg-gray-200 text-gray-900 hover:bg-gray-100 px-2 py-1 rounded-lg"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(expense.id)}
-                      className="text-danger-400 hover:text-danger-300"
+                      style={{ cursor: "pointer" }}
+                      className="bg-red-900/30 text-red-400 hover:bg-red-900/50 px-2 py-1 rounded-lg"
                     >
                       Delete
                     </button>
@@ -224,7 +226,7 @@ const Expenses = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors"
                 >
                   {editingId ? "Update" : "Create"}
                 </button>
