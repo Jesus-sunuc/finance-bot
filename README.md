@@ -404,7 +404,6 @@ Rubric items:
 - [ ] Function 1: Add Expense (2.5 points)
 
 Features:
-- [ ] Snow College AI Server API integration
 - [ ] Zod schemas for all AI outputs
 - [ ] Agent loop state machine (planning → acting → observing)
 - [ ] Agent decision log table in PostgreSQL
