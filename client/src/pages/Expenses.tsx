@@ -1,6 +1,12 @@
 import { useState } from "react";
-import { useExpensesQuery, useCreateExpense, useUpdateExpense, useDeleteExpense } from "../hooks/ExpenseHooks";
+import {
+  useExpensesQuery,
+  useCreateExpense,
+  useUpdateExpense,
+  useDeleteExpense,
+} from "../hooks/ExpenseHooks";
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "../models/Expense";
+import ConfirmationModal from "../components/ui/ConfirmationModal";
 
 const Expenses = () => {
   const { data: expenses } = useExpensesQuery();
@@ -9,6 +15,8 @@ const Expenses = () => {
   const deleteExpense = useDeleteExpense();
 
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ExpenseCreate>({
     amount: 0,
@@ -33,7 +41,10 @@ const Expenses = () => {
     e.preventDefault();
 
     if (editingId) {
-      await updateExpense.mutateAsync({ id: editingId, data: formData as ExpenseUpdate });
+      await updateExpense.mutateAsync({
+        id: editingId,
+        data: formData as ExpenseUpdate,
+      });
     } else {
       await createExpense.mutateAsync(formData);
     }
@@ -55,12 +66,27 @@ const Expenses = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this expense?")) {
-      await deleteExpense.mutateAsync(id);
-    }
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
   };
 
-  const categories = ["Food", "Transport", "Shopping", "Entertainment", "Bills", "Health", "Other"];
+  const confirmDelete = async () => {
+    if (deleteTargetId) {
+      await deleteExpense.mutateAsync(deleteTargetId);
+    }
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  };
+
+  const categories = [
+    "Food",
+    "Transport",
+    "Shopping",
+    "Entertainment",
+    "Bills",
+    "Health",
+    "Other",
+  ];
 
   return (
     <div className="space-y-6">
@@ -96,19 +122,35 @@ const Expenses = () => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <h3 className="text-lg font-medium text-gray-200 mb-2">No Expenses Yet</h3>
-            <p className="text-gray-400">Start tracking by adding your first expense</p>
+            <h3 className="text-lg font-medium text-gray-200 mb-2">
+              No Expenses Yet
+            </h3>
+            <p className="text-gray-400">
+              Start tracking by adding your first expense
+            </p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Merchant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Amount</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Merchant
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Description
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -117,13 +159,17 @@ const Expenses = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                     {expense.date.toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">{expense.merchant}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
+                    {expense.merchant}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium rounded-full text-gray-100">
                       {expense.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">{expense.description || "-"}</td>
+                  <td className="px-6 py-4 text-sm text-gray-400">
+                    {expense.description || "-"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-100">
                     ${expense.amount.toFixed(2)}
                   </td>
@@ -158,31 +204,46 @@ const Expenses = () => {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Merchant</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Merchant
+                </label>
                 <input
                   type="text"
                   value={formData.merchant}
-                  onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, merchant: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Amount</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Amount
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      amount: parseFloat(e.target.value),
+                    })
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Category
+                </label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   required
                 >
@@ -195,20 +256,28 @@ const Expenses = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Date</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Date
+                </label>
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Description (optional)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Description (optional)
+                </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   rows={3}
                 />
@@ -235,6 +304,20 @@ const Expenses = () => {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeleteTargetId(null);
+        }}
+      />
     </div>
   );
 };
