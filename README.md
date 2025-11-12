@@ -417,9 +417,25 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Structured output validated with Pydantic (5 points) - ExpenseParseResult, AgentDecision, ChatResponse with field validation
+- [x] Agentic loop (5 points) - State machine: Planning → Acting → Observing → Completed
+- [x] LLM decisions persisted (5 points) - agent_decision_log table in PostgreSQL with all reasoning
+- [x] Function 1: Add Expense (2.5 points) - Natural language expense parser with 99% confidence
 
 Features:
+- [x] Pydantic models for structured validation (Python equivalent of Zod)
+- [x] Agent loop state machine implementation in AgentService
+- [x] agent_decision_log PostgreSQL table (user_message, agent_state, llm_reasoning, action_taken, result, created_at)
+- [x] Add Expense function with natural language parsing (gpt-oss-120b model)
+- [x] Natural language parser extracts: amount, category, merchant, date, description, confidence
+- [x] POST /api/agent/chat endpoint (processes messages through agentic loop)
+- [x] POST /api/agent/add-expense endpoint (parses text and creates Notion entry)
+- [x] GET /api/agent/decisions endpoint (retrieves decision history)
+- [x] Chat interface connected to backend with React Query hooks
+- [x] Display agent reasoning and state in chat UI
+- [x] AgentHooks.ts with useSendMessage, useAddExpenseFromText, useAgentDecisions
+- [x] Scanner page (AI Expense Parser) with natural language input and success feedback
+- [x] Environment configuration for custom AI endpoint (OPENAI_BASE_URL, AI_TOKEN support)
 
 
 ---
