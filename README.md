@@ -467,9 +467,25 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Function 2: Generate Report (2.5 points) - Fully implemented with agent endpoint
+- [x] Function 3: Delete Transaction (2.5 points) - Implemented with search and confirmation
+- [x] 1+ confirmation required (5 points) - Reusable ConfirmationModal component
+- [x] 1+ auto-adjust UI (5 points) - Auto-navigation to /reports page after generation
 
 Features:
+- [x] Generate Budget Report function - Implemented with spending analytics
+- [x] Report data generation - Category breakdown, totals, transaction counts
+- [x] Confirmation modal component (reusable) - ConfirmationModal with variants (danger/warning/info)
+- [x] Delete Transaction function - Full implementation with search logic
+- [x] Transaction search logic - Searches by merchant, category, amount, description
+- [x] POST /api/agent/generate-report endpoint - Returns structured report data
+- [x] POST /api/agent/delete-transaction endpoint - Handles single/multiple match scenarios
+- [x] Auto-navigate to /reports on report generation - navigate_to field in response
+- [x] Report display functionality - Visual category breakdown with progress bars
+- [x] Admin panel showing all agent decisions - Real-time display with statistics
+- [x] Agent decision statistics - Success rate, total requests, error tracking
+- [x] Multiple match handling for delete - Requires user confirmation when ambiguous
+- [x] Chat integration with navigation - Auto-redirects after agent actions
 
 
 ---

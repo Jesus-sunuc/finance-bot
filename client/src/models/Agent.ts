@@ -21,10 +21,22 @@ export interface AddExpenseRequest {
   text: string;
 }
 
+export interface DeleteTransactionRequest {
+  query: string;
+}
+
+export interface GenerateReportRequest {
+  report_type?: "monthly" | "category" | "trends";
+  start_date?: string;
+  end_date?: string;
+}
+
 export type AgentState = "planning" | "acting" | "observing" | "completed";
 
 export type ActionType =
   | "add_expense"
+  | "delete_transaction"
+  | "generate_report"
   | "get_budget"
   | "get_expenses"
   | "general_response"

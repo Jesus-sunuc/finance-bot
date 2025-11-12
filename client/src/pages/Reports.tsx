@@ -1,4 +1,50 @@
+import { useState } from "react";
+import { useGenerateReport } from "../hooks/AgentHooks";
+import type { ChatResponse } from "../models/Agent";
+
+interface ReportData {
+  success: boolean;
+  reportType: string;
+  totalSpent: number;
+  transactionCount: number;
+  categoryBreakdown: Array<{
+    category: string;
+    total: number;
+    count: number;
+    percentage: number;
+  }>;
+  topCategory: string;
+  startDate?: string;
+  endDate?: string;
+  navigateTo?: string;
+  dailyAverage?: number;
+  periodDescription?: string;
+  totalCategories?: number;
+  trendData?: Array<{
+    date: string;
+    amount: number;
+  }>;
+  trendDirection?: string;
+}
+
 const Reports = () => {
+  const [generatedReport, setGeneratedReport] = useState<ChatResponse | null>(
+    null
+  );
+  const generateReportMutation = useGenerateReport();
+
+  const handleGenerateReport = async (reportType: string) => {
+    try {
+      const response = await generateReportMutation.mutateAsync({
+        report_type: reportType as "monthly" | "category" | "trends",
+      });
+      console.log("Report response:", response);
+      console.log("Report data:", response.data);
+      setGeneratedReport(response);
+    } catch (error) {
+      console.error("Failed to generate report:", error);
+    }
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -29,8 +75,12 @@ const Reports = () => {
           <p className="text-sm text-gray-400 mb-4">
             Overview of your spending this month
           </p>
-          <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">
-            Generate →
+          <button
+            onClick={() => handleGenerateReport("monthly")}
+            disabled={generateReportMutation.isPending}
+            className="text-primary-400 bg-gray-300 px-3 py-1 rounded hover:text-primary-300 text-sm font-medium disabled:opacity-50"
+          >
+            {generateReportMutation.isPending ? "Generating..." : "Generate →"}
           </button>
         </div>
 
@@ -56,8 +106,12 @@ const Reports = () => {
           <p className="text-sm text-gray-400 mb-4">
             See where your money goes
           </p>
-          <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">
-            Generate →
+          <button
+            onClick={() => handleGenerateReport("category")}
+            disabled={generateReportMutation.isPending}
+            className="text-primary-400 bg-gray-300 px-3 py-1 rounded hover:text-primary-300 text-sm font-medium disabled:opacity-50"
+          >
+            {generateReportMutation.isPending ? "Generating..." : "Generate →"}
           </button>
         </div>
 
@@ -81,11 +135,252 @@ const Reports = () => {
             Trends Analysis
           </h3>
           <p className="text-sm text-gray-400 mb-4">Track spending over time</p>
-          <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">
-            Generate →
+          <button
+            onClick={() => handleGenerateReport("trends")}
+            disabled={generateReportMutation.isPending}
+            className="text-primary-400 bg-gray-300 px-3 py-1 rounded  hover:text-primary-300 text-sm font-medium disabled:opacity-50"
+          >
+            {generateReportMutation.isPending ? "Generating..." : "Generate →"}
           </button>
         </div>
       </div>
+
+      {generatedReport && generatedReport.data && (
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-100 mb-2">
+                Generated Report
+              </h3>
+              <p className="text-gray-400">{generatedReport.message}</p>
+            </div>
+            <button
+              onClick={() => setGeneratedReport(null)}
+              className="text-gray-400 hover:text-gray-300"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3 mb-6">
+            <div className="bg-gray-900 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-1">Total Spent</p>
+              <p className="text-2xl font-bold text-gray-100">
+                $
+                {(generatedReport.data as unknown as ReportData).totalSpent !==
+                undefined
+                  ? Number(
+                      (generatedReport.data as unknown as ReportData).totalSpent
+                    ).toFixed(2)
+                  : "0.00"}
+              </p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-1">Transactions</p>
+              <p className="text-2xl font-bold text-gray-100">
+                {String(
+                  (generatedReport.data as unknown as ReportData)
+                    .transactionCount ?? 0
+                )}
+              </p>
+            </div>
+            <div className="bg-gray-900 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-1">Top Category</p>
+              <p className="text-2xl font-bold text-gray-100">
+                {String(
+                  (generatedReport.data as unknown as ReportData).topCategory ??
+                    "N/A"
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Report Type Specific Information */}
+          {(() => {
+            const reportData = generatedReport.data as unknown as ReportData;
+            const reportType = reportData.reportType;
+
+            if (reportType === "monthly" && reportData.dailyAverage) {
+              return (
+                <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 mb-6">
+                  <h4 className="text-sm font-semibold text-blue-300 mb-2">
+                    📊 Monthly Insights
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-400">Daily Average</p>
+                      <p className="text-lg font-bold text-gray-100">
+                        ${reportData.dailyAverage.toFixed(2)}/day
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Period</p>
+                      <p className="text-lg font-bold text-gray-100">
+                        {reportData.periodDescription || "This Month"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (reportType === "category" && reportData.totalCategories) {
+              return (
+                <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 mb-6">
+                  <h4 className="text-sm font-semibold text-green-300 mb-2">
+                    🏷️ Category Analysis
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-400">Total Categories</p>
+                      <p className="text-lg font-bold text-gray-100">
+                        {reportData.totalCategories}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Sorted By</p>
+                      <p className="text-lg font-bold text-gray-100">
+                        Category Name
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (
+              reportType === "trends" &&
+              reportData.trendData &&
+              reportData.trendData.length > 0
+            ) {
+              const trendIcon =
+                reportData.trendDirection === "increasing"
+                  ? "📈"
+                  : reportData.trendDirection === "decreasing"
+                  ? "📉"
+                  : "➡️";
+              const trendColor =
+                reportData.trendDirection === "increasing"
+                  ? "text-red-300"
+                  : reportData.trendDirection === "decreasing"
+                  ? "text-green-300"
+                  : "text-gray-300";
+
+              return (
+                <div className="bg-purple-900/20 border border-purple-800 rounded-lg p-4 mb-6">
+                  <h4 className="text-sm font-semibold text-purple-300 mb-3">
+                    {trendIcon} Spending Trend (
+                    {reportData.periodDescription || "Last 7 Days"})
+                  </h4>
+                  <div className="mb-4">
+                    <p className={`text-sm font-semibold ${trendColor}`}>
+                      Trend:{" "}
+                      {reportData.trendDirection?.replace("_", " ") || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {reportData.trendData.map((day, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-sm text-gray-400">
+                          {new Date(day.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                        <div className="flex-1 mx-3">
+                          <div className="w-full bg-gray-700 rounded-full h-2">
+                            <div
+                              className="bg-purple-500 h-2 rounded-full"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  (day.amount /
+                                    Math.max(
+                                      ...reportData.trendData!.map(
+                                        (d) => d.amount
+                                      )
+                                    )) *
+                                    100
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-200">
+                          ${day.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            return null;
+          })()}
+
+          {(() => {
+            const breakdown = (generatedReport.data as unknown as ReportData)
+              .categoryBreakdown;
+            if (!breakdown || !Array.isArray(breakdown)) return null;
+
+            return (
+              <div>
+                <h4 className="text-md font-semibold text-gray-200 mb-3">
+                  Category Breakdown
+                </h4>
+                <div className="space-y-2">
+                  {(
+                    breakdown as Array<{
+                      category: string;
+                      total: number;
+                      count: number;
+                      percentage: number;
+                    }>
+                  ).map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between bg-gray-900 rounded-lg p-3"
+                    >
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-200">
+                            {item.category}
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            ${item.total.toFixed(2)} ({item.count} transactions)
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-primary-500 h-2 rounded-full"
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
         <svg

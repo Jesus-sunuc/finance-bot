@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from src.models.agent import ChatRequest, ChatResponse, AddExpenseRequest, AgentDecision
+from src.models.agent import ChatRequest, ChatResponse, AddExpenseRequest, DeleteTransactionRequest, GenerateReportRequest, AgentDecision
 from src.service.agent_service import AgentService
 from src.repository.agent_repository import AgentRepository
 from src.utils.decorators import handle_notion_errors
@@ -58,7 +58,7 @@ async def add_expense_from_text(request: AddExpenseRequest):
             category=expense_create.category,
             merchant=expense_create.merchant,
             date=expense_create.date,
-            description=expense_create.description
+            description=expense_create.description or ""
         )
         
         from src.models.agent import ActionType, AgentState
@@ -105,4 +105,145 @@ async def get_recent_decisions(limit: int = 10):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving decisions: {str(e)}"
+        )
+
+
+@router.post("/delete-transaction", response_model=ChatResponse)
+@handle_notion_errors
+async def delete_transaction(request: DeleteTransactionRequest):
+    try:
+        result = agent_service.delete_transaction_by_query(request.query)
+        
+        from src.models.agent import ActionType, AgentState
+        
+        if result.get("needs_confirmation"):
+            decision = AgentDecision(
+                user_message=request.query,
+                agent_state=AgentState.COMPLETED,
+                llm_reasoning="Multiple matches found, needs user confirmation",
+                action_taken=ActionType.DELETE_TRANSACTION,
+                result=result
+            )
+            agent_repository.log_decision(decision)
+            
+            matches = result.get("matches", [])
+            match_list = "\n".join([
+                f"- ${m['amount']:.2f} at {m['merchant']} on {m['date']}"
+                for m in matches
+            ])
+            
+            return ChatResponse(
+                message=f"I found {len(matches)} matching transactions:\n{match_list}\n\nPlease be more specific about which one to delete.",
+                reasoning="Multiple matches require clarification",
+                action_taken=ActionType.DELETE_TRANSACTION,
+                state=AgentState.COMPLETED,
+                data=result
+            )
+        
+        if not result.get("success"):
+            decision = AgentDecision(
+                user_message=request.query,
+                agent_state=AgentState.COMPLETED,
+                llm_reasoning="Transaction not found",
+                action_taken=ActionType.ERROR,
+                result=result
+            )
+            agent_repository.log_decision(decision)
+            
+            return ChatResponse(
+                message=result.get("message", "Transaction not found"),
+                reasoning="No matching transaction",
+                action_taken=ActionType.ERROR,
+                state=AgentState.COMPLETED,
+                data=result
+            )
+        
+        deleted = result.get("deleted_transaction", {})
+        decision = AgentDecision(
+            user_message=request.query,
+            agent_state=AgentState.COMPLETED,
+            llm_reasoning=f"Deleted transaction: {deleted.get('merchant')}",
+            action_taken=ActionType.DELETE_TRANSACTION,
+            result=result
+        )
+        agent_repository.log_decision(decision)
+        
+        return ChatResponse(
+            message=result.get("message", "Transaction deleted successfully"),
+            reasoning="Transaction deleted",
+            action_taken=ActionType.DELETE_TRANSACTION,
+            state=AgentState.COMPLETED,
+            data=result
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in delete-transaction endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting transaction: {str(e)}"
+        )
+
+
+@router.post("/generate-report", response_model=ChatResponse)
+@handle_notion_errors
+async def generate_report(request: GenerateReportRequest):
+    try:
+        result = agent_service.generate_spending_report(
+            report_type=request.report_type,
+            start_date=request.start_date,
+            end_date=request.end_date
+        )
+        
+        from src.models.agent import ActionType, AgentState
+        
+        if not result.get("success"):
+            decision = AgentDecision(
+                user_message=f"Generate {request.report_type} report",
+                agent_state=AgentState.COMPLETED,
+                llm_reasoning="Failed to generate report",
+                action_taken=ActionType.ERROR,
+                result=result
+            )
+            agent_repository.log_decision(decision)
+            
+            return ChatResponse(
+                message=result.get("message", "Failed to generate report"),
+                reasoning="Report generation failed",
+                action_taken=ActionType.ERROR,
+                state=AgentState.COMPLETED,
+                data=result
+            )
+        
+        decision = AgentDecision(
+            user_message=f"Generate {request.report_type} report",
+            agent_state=AgentState.COMPLETED,
+            llm_reasoning=f"Generated {request.report_type} report with {result.get('transaction_count')} transactions",
+            action_taken=ActionType.GENERATE_REPORT,
+            result=result
+        )
+        agent_repository.log_decision(decision)
+        
+        total = result.get('total_spent', 0)
+        count = result.get('transaction_count', 0)
+        top_cat = result.get('top_category', 'N/A')
+        
+        message = f"Report generated! You spent ${total:.2f} across {count} transactions. Top category: {top_cat}."
+        
+        return ChatResponse(
+            message=message,
+            reasoning=f"Generated {request.report_type} report",
+            action_taken=ActionType.GENERATE_REPORT,
+            state=AgentState.COMPLETED,
+            data={**result, "navigate_to": "/reports"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in generate-report endpoint: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating report: {str(e)}"
         )

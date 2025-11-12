@@ -4,6 +4,8 @@ import type {
   ChatRequest,
   ChatResponse,
   AddExpenseRequest,
+  DeleteTransactionRequest,
+  GenerateReportRequest,
 } from "../models/Agent";
 import toast from "react-hot-toast";
 
@@ -44,6 +46,45 @@ export const useAgentDecisions = (limit: number = 10) => {
     queryFn: async () => {
       const res = await axiosClient.get(`/api/agent/decisions?limit=${limit}`);
       return res.data.decisions;
+    },
+  });
+};
+
+export const useDeleteTransaction = () => {
+  return useMutation({
+    mutationFn: async (
+      request: DeleteTransactionRequest
+    ): Promise<ChatResponse> => {
+      const res = await axiosClient.post(
+        "/api/agent/delete-transaction",
+        request
+      );
+      return res.data;
+    },
+    onSuccess: (data) => {
+      if (data.data?.success) {
+        toast.success("Transaction deleted successfully");
+      }
+    },
+    onError: () => {
+      toast.error("Failed to delete transaction");
+    },
+  });
+};
+
+export const useGenerateReport = () => {
+  return useMutation({
+    mutationFn: async (
+      request: GenerateReportRequest
+    ): Promise<ChatResponse> => {
+      const res = await axiosClient.post("/api/agent/generate-report", request);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("Report generated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to generate report");
     },
   });
 };

@@ -11,6 +11,8 @@ class AgentState(str, Enum):
 
 class ActionType(str, Enum):
     ADD_EXPENSE = "add_expense"
+    DELETE_TRANSACTION = "delete_transaction"
+    GENERATE_REPORT = "generate_report"
     GET_BUDGET = "get_budget"
     GET_EXPENSES = "get_expenses"
     GENERAL_RESPONSE = "general_response"
@@ -49,3 +51,11 @@ class ChatResponse(BaseModel):
 
 class AddExpenseRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=500)
+
+class DeleteTransactionRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=500, description="Description of transaction to delete")
+
+class GenerateReportRequest(BaseModel):
+    report_type: str = Field(default="monthly", pattern="^(monthly|category|trends)$")
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None

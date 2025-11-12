@@ -32,6 +32,173 @@ class AgentService:
         self.current_state = AgentState.COMPLETED
         return response
     
+    def search_transactions(self, query: str) -> list:
+        try:
+            all_expenses = self.notion_service.get_all_expenses()
+            
+            query_lower = query.lower()
+            matching = []
+            
+            for expense in all_expenses:
+                merchant = expense.get('merchant', '').lower()
+                category = expense.get('category', '').lower()
+                description = expense.get('description', '').lower()
+                amount_str = str(expense.get('amount', ''))
+                
+                if (query_lower in merchant or 
+                    query_lower in category or 
+                    query_lower in description or
+                    query_lower in amount_str):
+                    matching.append(expense)
+            
+            return matching
+        except Exception as e:
+            print(f"Error searching transactions: {e}")
+            return []
+    
+    def delete_transaction_by_query(self, query: str) -> Dict[str, Any]:
+        matches = self.search_transactions(query)
+        
+        if not matches:
+            return {
+                "success": False,
+                "message": "No matching transaction found",
+                "matches": []
+            }
+        
+        if len(matches) > 1:
+            return {
+                "success": False,
+                "message": f"Found {len(matches)} matching transactions. Please be more specific.",
+                "matches": matches[:3],
+                "needs_confirmation": True
+            }
+        
+        transaction = matches[0]
+        try:
+            self.notion_service.delete_expense(transaction['id'])
+            return {
+                "success": True,
+                "message": f"Deleted ${transaction['amount']:.2f} at {transaction['merchant']}",
+                "deleted_transaction": transaction
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to delete transaction: {str(e)}"
+            }
+    
+    def generate_spending_report(self, report_type: str = "monthly", start_date: Optional[str] = None, end_date: Optional[str] = None) -> Dict[str, Any]:
+        """Generate a spending report"""
+        try:
+            from datetime import datetime, timedelta
+            all_expenses = self.notion_service.get_all_expenses()
+            
+            if report_type == "monthly" and not start_date and not end_date:
+                now = datetime.now()
+                start_date = now.replace(day=1).strftime("%Y-%m-%d")
+                end_date = now.strftime("%Y-%m-%d")
+            
+            if start_date or end_date:
+                filtered = []
+                for expense in all_expenses:
+                    exp_date = expense.get('date', '')
+                    if start_date and exp_date < start_date:
+                        continue
+                    if end_date and exp_date > end_date:
+                        continue
+                    filtered.append(expense)
+                all_expenses = filtered
+            
+            total_spent = sum(exp.get('amount', 0) for exp in all_expenses)
+            
+            by_category = {}
+            for expense in all_expenses:
+                cat = expense.get('category', 'Other')
+                if cat not in by_category:
+                    by_category[cat] = {'total': 0, 'count': 0}
+                by_category[cat]['total'] += expense.get('amount', 0)
+                by_category[cat]['count'] += 1
+            
+            category_breakdown = [
+                {
+                    'category': cat,
+                    'total': data['total'],
+                    'count': data['count'],
+                    'percentage': (data['total'] / total_spent * 100) if total_spent > 0 else 0
+                }
+                for cat, data in by_category.items()
+            ]
+            category_breakdown.sort(key=lambda x: x['total'], reverse=True)
+            
+            report_data = {
+                "success": True,
+                "report_type": report_type,
+                "total_spent": total_spent,
+                "transaction_count": len(all_expenses),
+                "category_breakdown": category_breakdown,
+                "top_category": category_breakdown[0]['category'] if category_breakdown else None,
+                "start_date": start_date,
+                "end_date": end_date
+            }
+            
+            if report_type == "monthly":
+                if start_date:
+                    days_in_period = (datetime.strptime(end_date or start_date, "%Y-%m-%d") - 
+                                     datetime.strptime(start_date, "%Y-%m-%d")).days + 1
+                else:
+                    days_in_period = 30
+                report_data["daily_average"] = total_spent / days_in_period if days_in_period > 0 else 0
+                report_data["period_description"] = "This Month"
+                
+            elif report_type == "category":
+                report_data["category_breakdown"] = sorted(
+                    category_breakdown, 
+                    key=lambda x: x['category']
+                )
+                report_data["total_categories"] = len(category_breakdown)
+                report_data["period_description"] = "All Time"
+                
+            elif report_type == "trends":
+                by_date = {}
+                for expense in all_expenses:
+                    exp_date = expense.get('date', '')
+                    if exp_date:
+                        if exp_date not in by_date:
+                            by_date[exp_date] = 0
+                        by_date[exp_date] += expense.get('amount', 0)
+                
+                sorted_dates = sorted(by_date.keys(), reverse=True)[:7]
+                trend_data = [
+                    {'date': date, 'amount': by_date[date]}
+                    for date in sorted(sorted_dates)
+                ]
+                report_data["trend_data"] = trend_data
+                report_data["period_description"] = "Last 7 Days"
+                
+                if len(trend_data) >= 2:
+                    recent_avg = sum(d['amount'] for d in trend_data[-3:]) / 3 if len(trend_data) >= 3 else trend_data[-1]['amount']
+                    older_avg = sum(d['amount'] for d in trend_data[:3]) / 3 if len(trend_data) >= 3 else trend_data[0]['amount']
+                    if recent_avg > older_avg * 1.1:
+                        report_data["trend_direction"] = "increasing"
+                    elif recent_avg < older_avg * 0.9:
+                        report_data["trend_direction"] = "decreasing"
+                    else:
+                        report_data["trend_direction"] = "stable"
+                else:
+                    report_data["trend_direction"] = "insufficient_data"
+            
+            return report_data
+            
+        except Exception as e:
+            print(f"Error generating report: {e}")
+            import traceback
+            traceback.print_exc()
+            return {
+                "success": False,
+                "message": f"Failed to generate report: {str(e)}"
+            }
+    
     def _plan(self, user_message: str) -> Dict[str, Any]:
         system_prompt = """You are a financial assistant AI. Analyze the user's message and determine their intent.
         
@@ -68,7 +235,7 @@ Respond in JSON format:
             expense_data = self.parse_expense_from_text(user_message)
             
             if expense_data:
-                expense_create = ExpenseCreate(
+                created_expense = self.notion_service.create_expense(
                     amount=expense_data.amount,
                     category=expense_data.category,
                     merchant=expense_data.merchant,
@@ -76,15 +243,13 @@ Respond in JSON format:
                     description=expense_data.description or ""
                 )
                 
-                created_expense = self.notion_service.create_expense(expense_create)
-                
                 return {
                     "action": ActionType.ADD_EXPENSE,
                     "reasoning": reasoning,
                     "success": True,
                     "data": {
                         "expense": expense_data.model_dump(),
-                        "expense_id": created_expense.id if created_expense else None
+                        "expense_id": created_expense.get("id") if created_expense else None
                     }
                 }
             else:

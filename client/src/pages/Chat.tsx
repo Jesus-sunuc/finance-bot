@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSendMessage } from "../hooks/AgentHooks";
 import type { ChatMessage } from "../models/Agent";
 
@@ -7,6 +8,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = useSendMessage();
+  const navigate = useNavigate();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,6 +44,13 @@ const Chat = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Check if agent wants to navigate somewhere
+      if (response.data?.navigate_to) {
+        setTimeout(() => {
+          navigate(response.data!.navigate_to as string);
+        }, 1500); // Brief delay to show the message
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: ChatMessage = {
