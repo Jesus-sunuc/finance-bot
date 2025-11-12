@@ -5,6 +5,7 @@ from datetime import datetime
 from openai import OpenAI
 from src.models.agent import AgentState, ActionType, ExpenseParseResult, AgentDecision, ChatResponse
 from src.models.expense import ExpenseCreate
+from src.models.budget import BudgetParseResult
 from src.service.notion_service import NotionService
 
 class AgentService:
@@ -204,13 +205,14 @@ class AgentService:
         
 Possible intents:
 - ADD_EXPENSE: User is reporting a spending/expense
+- SET_BUDGET: User wants to set or update a budget goal (e.g., "set my dining budget to $400")
 - GET_BUDGET: User wants to see their budget
 - GET_EXPENSES: User wants to see their expenses
 - GENERAL_RESPONSE: General question or conversation
 
 Respond in JSON format:
 {
-    "intent": "ADD_EXPENSE|GET_BUDGET|GET_EXPENSES|GENERAL_RESPONSE",
+    "intent": "ADD_EXPENSE|SET_BUDGET|GET_BUDGET|GET_EXPENSES|GENERAL_RESPONSE",
     "reasoning": "Brief explanation of why you chose this intent",
     "confidence": 0.0-1.0
 }"""
@@ -260,6 +262,24 @@ Respond in JSON format:
                     "data": None
                 }
         
+        elif intent == "SET_BUDGET":
+            budget_result = self.set_budget_goal(user_message)
+            
+            if budget_result.get("success"):
+                return {
+                    "action": ActionType.SET_BUDGET,
+                    "reasoning": reasoning,
+                    "success": True,
+                    "data": budget_result
+                }
+            else:
+                return {
+                    "action": ActionType.ERROR,
+                    "reasoning": "Failed to set budget",
+                    "success": False,
+                    "data": budget_result
+                }
+        
         elif intent == "GET_BUDGET":
             return {
                 "action": ActionType.GET_BUDGET,
@@ -294,6 +314,11 @@ Respond in JSON format:
         if action == ActionType.ADD_EXPENSE and success:
             expense = data.get("expense", {})
             message = f"I've added your expense: ${expense.get('amount', 0):.2f} at {expense.get('merchant', 'Unknown')} for {expense.get('category', 'Uncategorized')}."
+        
+        elif action == ActionType.SET_BUDGET and success:
+            budget = data.get("budget", {})
+            action_type = data.get("action", "set")
+            message = data.get("message", f"Budget {action_type} successfully!")
         
         elif action == ActionType.ERROR:
             message = "I had trouble understanding that expense. Could you try rephrasing? For example: 'I spent $45 on groceries at Whole Foods'"
@@ -356,6 +381,97 @@ If you cannot parse the expense, return confidence: 0.0"""
         except Exception as e:
             print(f"Error parsing expense: {e}")
             return None
+    
+    def parse_budget_from_text(self, text: str) -> Optional[BudgetParseResult]:
+        """Parse budget details from natural language using LLM"""
+        
+        system_prompt = """You are a budget parser. Extract budget details from natural language.
+
+Extract these fields:
+- category: The budget category (Groceries, Dining, Transportation, Entertainment, Shopping, Bills, Healthcare, Other, or a custom category)
+- amount: The dollar amount for the budget (number only, no $)
+- period: The budget period (monthly, weekly, yearly)
+- confidence: Your confidence in the parse (0.0-1.0)
+
+Examples:
+"Set my dining budget to $400 this month" → {"category": "Dining", "amount": 400, "period": "monthly", "confidence": 1.0}
+"I want to spend $100 weekly on groceries" → {"category": "Groceries", "amount": 100, "period": "weekly", "confidence": 1.0}
+"Limit transportation to $200" → {"category": "Transportation", "amount": 200, "period": "monthly", "confidence": 0.9}
+
+Respond ONLY in JSON format:
+{
+    "category": "Dining",
+    "amount": 400.00,
+    "period": "monthly",
+    "confidence": 0.95
+}
+
+If you cannot parse the budget, return confidence: 0.0"""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Parse this budget request: {text}"}
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            parsed_data = json.loads(response.choices[0].message.content)
+            budget_result = BudgetParseResult(**parsed_data)
+            
+            if budget_result.confidence >= 0.5:
+                return budget_result
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error parsing budget: {e}")
+            return None
+    
+    def set_budget_goal(self, text: str) -> Dict[str, Any]:
+        budget_data = self.parse_budget_from_text(text)
+        
+        if not budget_data:
+            return {
+                "success": False,
+                "message": "Could not understand budget request. Try: 'Set my dining budget to $400 this month'"
+            }
+        
+        try:
+            existing_budgets = self.notion_service.get_all_budgets()
+            existing = next((b for b in existing_budgets if b['category'].lower() == budget_data.category.lower()), None)
+            
+            if existing:
+                updated = self.notion_service.update_budget(
+                    budget_id=existing['id'],
+                    amount=budget_data.amount,
+                    period=budget_data.period
+                )
+                return {
+                    "success": True,
+                    "message": f"Updated {budget_data.category} budget to ${budget_data.amount:.2f} per {budget_data.period}",
+                    "budget": updated,
+                    "action": "updated"
+                }
+            else:
+                created = self.notion_service.create_budget(
+                    category=budget_data.category,
+                    amount=budget_data.amount,
+                    period=budget_data.period
+                )
+                return {
+                    "success": True,
+                    "message": f"Set {budget_data.category} budget to ${budget_data.amount:.2f} per {budget_data.period}",
+                    "budget": created,
+                    "action": "created"
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to set budget: {str(e)}"
+            }
     
     def _generate_general_response(self, message: str) -> str:
         system_prompt = """You are a helpful financial assistant. Respond to the user's question or comment in a friendly, concise way. 

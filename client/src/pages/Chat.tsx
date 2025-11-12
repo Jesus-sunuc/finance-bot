@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendMessage } from "../hooks/AgentHooks";
+import BudgetSidebar from "../components/BudgetSidebar";
 import type { ChatMessage } from "../models/Agent";
+import type { Budget } from "../models/Budget";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [budgetSidebarOpen, setBudgetSidebarOpen] = useState(false);
+  const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = useSendMessage();
   const navigate = useNavigate();
@@ -45,6 +49,12 @@ const Chat = () => {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      // Check for budget data and show sidebar
+      if (response.action_taken === "set_budget" && response.data?.budget) {
+        setCurrentBudget(response.data.budget as Budget);
+        setBudgetSidebarOpen(true);
+      }
+
       // Check if agent wants to navigate somewhere
       if (response.data?.navigate_to) {
         setTimeout(() => {
@@ -75,6 +85,12 @@ const Chat = () => {
         <h1 className="text-3xl font-bold text-gray-100 mb-2">AI Chat</h1>
         <p className="text-gray-400">Talk to your financial assistant</p>
       </div>
+
+      <BudgetSidebar
+        budget={currentBudget}
+        isOpen={budgetSidebarOpen}
+        onClose={() => setBudgetSidebarOpen(false)}
+      />
 
       <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-6 overflow-y-auto mb-4">
         {messages.length === 0 ? (

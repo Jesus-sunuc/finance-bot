@@ -1,4 +1,105 @@
+import { useState } from "react";
+import {
+  useBudgets,
+  useCreateBudget,
+  useDeleteBudget,
+} from "../hooks/BudgetHooks";
+import type { BudgetCreate } from "../models/Budget";
+import { showSuccessToast, showErrorToast } from "../utils/toast";
+import ConfirmationModal from "../components/ui/ConfirmationModal";
+
 const Budgets = () => {
+  const { data: budgets, isLoading } = useBudgets();
+  const createBudget = useCreateBudget();
+  const deleteBudget = useDeleteBudget();
+
+  const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<BudgetCreate>({
+    category: "",
+    amount: 0,
+    period: "monthly",
+    startDate: new Date().toISOString().split("T")[0],
+  });
+
+  const resetForm = () => {
+    setFormData({
+      category: "",
+      amount: 0,
+      period: "monthly",
+      startDate: new Date().toISOString().split("T")[0],
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.category || formData.amount <= 0) {
+      showErrorToast("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      await createBudget.mutateAsync(formData);
+      showSuccessToast("Budget created successfully!");
+      setShowModal(false);
+      resetForm();
+    } catch (error) {
+      showErrorToast(
+        error instanceof Error ? error.message : "Failed to create budget"
+      );
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetId) {
+      try {
+        await deleteBudget.mutateAsync(deleteTargetId);
+        showSuccessToast("Budget deleted successfully!");
+      } catch (error) {
+        showErrorToast(
+          error instanceof Error ? error.message : "Failed to delete budget"
+        );
+      }
+    }
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  };
+
+  const getProgressColor = (percentage: number): string => {
+    if (percentage < 70) return "bg-green-500";
+    if (percentage < 90) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const getStatusBadge = (percentage: number) => {
+    if (percentage < 70) {
+      return (
+        <span className="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded-full">
+          On Track
+        </span>
+      );
+    } else if (percentage < 90) {
+      return (
+        <span className="px-2 py-1 bg-yellow-900/30 text-yellow-400 text-xs rounded-full">
+          Near Limit
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-2 py-1 bg-red-900/30 text-red-400 text-xs rounded-full">
+          Over Budget
+        </span>
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -6,60 +107,251 @@ const Budgets = () => {
           <h1 className="text-3xl font-bold text-gray-100 mb-2">Budgets</h1>
           <p className="text-gray-400">Manage your spending limits</p>
         </div>
-        <button className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+        >
           + Create Budget
         </button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-100">
-                Food & Dining
-              </h3>
-              <p className="text-sm text-gray-400">Monthly budget</p>
-            </div>
-            <span className="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded-full">
-              On Track
-            </span>
-          </div>
-          <div className="mb-2">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-400">$0 spent</span>
-              <span className="text-gray-400">$0 limit</span>
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-primary-500 h-2 rounded-full"
-                style={{ width: "0%" }}
-              ></div>
-            </div>
+      {/* Create Budget Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
+            <h2 className="text-xl font-bold text-gray-100 mb-4">
+              Create Budget
+            </h2>
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Category *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="e.g., Dining, Transportation"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Amount *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.amount || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Period
+                  </label>
+                  <select
+                    value={formData.period}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        period: e.target.value as
+                          | "monthly"
+                          | "weekly"
+                          | "yearly",
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, startDate: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createBudget.isPending}
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {createBudget.isPending ? "Creating..." : "Create"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
-        <svg
-          className="w-16 h-16 text-gray-600 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <h3 className="text-lg font-medium text-gray-200 mb-2">
-          Budget Management Coming Soon
-        </h3>
-        <p className="text-gray-400">
-          Create and track spending limits by category
-        </p>
-      </div>
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Budget"
+        message="Are you sure you want to delete this budget? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        variant="danger"
+      />
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="text-gray-400 mt-4">Loading budgets...</p>
+        </div>
+      ) : !budgets || budgets.length === 0 ? (
+        <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
+          <svg
+            className="w-16 h-16 text-gray-600 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-200 mb-2">
+            No Budgets Yet
+          </h3>
+          <p className="text-gray-400 mb-4">
+            Create your first budget or use AI: "Set my dining budget to $400
+            this month"
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+          >
+            Create Budget
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {budgets.map((budget) => (
+            <div
+              key={budget.id}
+              className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-100">
+                    {budget.category}
+                  </h3>
+                  <p className="text-sm text-gray-400 capitalize">
+                    {budget.period} budget
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(budget.percentage)}
+                  <button
+                    onClick={() => handleDelete(budget.id)}
+                    className="text-red-400 hover:text-red-300 transition-colors"
+                    aria-label="Delete budget"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="mb-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Spent:</span>
+                  <span className="text-gray-200 font-medium">
+                    ${budget.spent.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Limit:</span>
+                  <span className="text-gray-200 font-medium">
+                    ${budget.amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Remaining:</span>
+                  <span
+                    className={`font-medium ${
+                      budget.remaining >= 0 ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    ${Math.abs(budget.remaining).toFixed(2)}
+                    {budget.remaining < 0 && " over"}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-400">Progress</span>
+                  <span className="text-gray-300 font-medium">
+                    {budget.percentage.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
+                      budget.percentage
+                    )}`}
+                    style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

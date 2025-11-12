@@ -7,6 +7,7 @@ import {
 } from "../hooks/ExpenseHooks";
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "../models/Expense";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
+import { showSuccessToast, showErrorToast } from "../utils/toast";
 
 const Expenses = () => {
   const { data: expenses } = useExpensesQuery();
@@ -40,17 +41,25 @@ const Expenses = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingId) {
-      await updateExpense.mutateAsync({
-        id: editingId,
-        data: formData as ExpenseUpdate,
-      });
-    } else {
-      await createExpense.mutateAsync(formData);
-    }
+    try {
+      if (editingId) {
+        await updateExpense.mutateAsync({
+          id: editingId,
+          data: formData as ExpenseUpdate,
+        });
+        showSuccessToast("Expense updated successfully!");
+      } else {
+        await createExpense.mutateAsync(formData);
+        showSuccessToast("Expense created successfully!");
+      }
 
-    setShowModal(false);
-    resetForm();
+      setShowModal(false);
+      resetForm();
+    } catch (error) {
+      showErrorToast(
+        error instanceof Error ? error.message : "Failed to save expense"
+      );
+    }
   };
 
   const handleEdit = (expense: Expense) => {
@@ -72,7 +81,14 @@ const Expenses = () => {
 
   const confirmDelete = async () => {
     if (deleteTargetId) {
-      await deleteExpense.mutateAsync(deleteTargetId);
+      try {
+        await deleteExpense.mutateAsync(deleteTargetId);
+        showSuccessToast("Expense deleted successfully!");
+      } catch (error) {
+        showErrorToast(
+          error instanceof Error ? error.message : "Failed to delete expense"
+        );
+      }
     }
     setShowDeleteModal(false);
     setDeleteTargetId(null);

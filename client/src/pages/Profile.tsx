@@ -1,7 +1,11 @@
 import { useAuth } from "react-oidc-context";
+import { useBudgets } from "../hooks/BudgetHooks";
+import { useExpensesQuery } from "../hooks/ExpenseHooks";
 
 const Profile = () => {
   const auth = useAuth();
+  const { data: budgets } = useBudgets();
+  const { data: expenses } = useExpensesQuery();
 
   return (
     <div className="space-y-6">
@@ -41,11 +45,15 @@ const Profile = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-400 mb-1">Total Expenses</p>
-              <p className="text-gray-100 font-medium">0</p>
+              <p className="text-gray-100 font-medium">
+                {expenses?.length || 0}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-400 mb-1">Active Budgets</p>
-              <p className="text-gray-100 font-medium">0</p>
+              <p className="text-gray-100 font-medium">
+                {budgets?.length || 0}
+              </p>
             </div>
           </div>
         </div>

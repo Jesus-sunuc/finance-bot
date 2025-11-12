@@ -37,6 +37,7 @@ export type ActionType =
   | "add_expense"
   | "delete_transaction"
   | "generate_report"
+  | "set_budget"
   | "get_budget"
   | "get_expenses"
   | "general_response"
