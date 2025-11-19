@@ -570,10 +570,34 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] Working with pictures - upload (5 points) - File upload with preview and multipart/form-data
+- [x] Working with pictures - OCR (5 points) - gemma3-27b vision model for receipt text extraction
 
 Features:
+- [x] Receipt upload component with drag-and-drop UI
+- [x] POST /api/receipts/upload endpoint - Extract data without saving
+- [x] POST /api/receipts/upload-and-save endpoint - Extract and auto-save to Notion
+- [x] gemma3-27b vision model integration (multimodal LLM for image understanding)
+- [x] OCR text extraction from receipts (merchant, amount, date, category, items)
+- [x] Structured data extraction with confidence scores
+- [x] Image preview before upload
+- [x] Dual-mode interface: Receipt Upload (OCR) + Text Description tabs
+- [x] Real-time extracted data display with confidence meter
+- [x] Extract data preview mode (validate before saving)
+- [x] Direct save mode (extract and save in one step)
+- [x] React Query hooks: useUploadReceipt, useUploadAndSaveReceipt
+- [x] Receipt router with FastAPI file handling
+- [x] python-multipart dependency for multipart/form-data support
+- [x] Base64 image encoding for API transmission
+- [x] Toast notifications for upload success/failure
+- [x] Responsive design with mobile-friendly upload interface
 
+Example Usage:
+```
+User: [Uploads Starbucks receipt photo]
+AI Vision (gemma3-27b): Extracts → Merchant: "Starbucks", Amount: $6.50, Category: "Dining", Items: ["Latte", "Croissant"]
+System: Shows confidence score (95%) → User can preview or save directly
+```
 
 ---
 
