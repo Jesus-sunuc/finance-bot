@@ -9,7 +9,8 @@ interface AuthenticatedLayoutProps {
 export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
   children,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed on mobile
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const auth = useAuth();
 
@@ -69,8 +70,19 @@ export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
   return (
     <>
       <div className="flex h-screen bg-gray-900">
+        {/* Mobile overlay */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
         <aside
           className={`${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 fixed md:static inset-y-0 left-0 z-30 ${
             sidebarOpen ? "w-64" : "w-20"
           } bg-gray-800 border-r border-gray-700 transition-all duration-300 flex flex-col`}
         >
@@ -147,7 +159,7 @@ export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
 
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="mx-2 mb-2 px-3 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-200 rounded-lg transition-colors"
+            className="hidden md:block mx-2 mb-2 px-3 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-200 rounded-lg transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -166,24 +178,48 @@ export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
         </aside>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
+          <header className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-4 md:px-6">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-gray-100">
+              {/* Mobile hamburger menu */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden text-gray-400 hover:text-gray-200 p-2 -ml-2"
+                aria-label="Toggle menu"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={
+                      mobileMenuOpen
+                        ? "M6 18L18 6M6 6l12 12"
+                        : "M4 6h16M4 12h16M4 18h16"
+                    }
+                  />
+                </svg>
+              </button>
+              <h1 className="text-lg md:text-xl font-semibold text-gray-100 truncate">
                 {navItems.find((item) => item.path === location.pathname)
                   ?.label || "FinanceBot"}
               </h1>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <button
                 onClick={() => void auth.signoutRedirect()}
-                className="px-4 py-2 bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded-lg font-medium transition-colors"
+                className="px-3 py-1.5 md:px-4 md:py-2 bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded-lg font-medium transition-colors text-sm md:text-base"
               >
                 Sign Out
               </button>
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
         </div>
       </div>
     </>

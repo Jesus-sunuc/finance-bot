@@ -107,21 +107,27 @@ const Expenses = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-100 mb-2">Expenses</h1>
-          <p className="text-gray-400">Track all your transactions</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+            Expenses
+          </h1>
+          <p className="text-gray-400 text-sm md:text-base">
+            Track all your transactions
+          </p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowModal(true);
           }}
-          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+          className="px-3 py-2 md:px-4 md:py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors text-sm md:text-base"
         >
-          + Add Expense
+          <span className="hidden sm:inline">+ Add Expense</span>
+          <span className="sm:hidden">+</span>
         </button>
       </div>
 
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
         {expenses.length === 0 ? (
           <div className="text-center py-16">
             <svg
@@ -192,14 +198,14 @@ const Expenses = () => {
                     <button
                       onClick={() => handleEdit(expense)}
                       style={{ cursor: "pointer" }}
-                      className="bg-gray-200 text-gray-900 hover:bg-gray-100 px-2 py-1 rounded-lg"
+                      className="bg-gray-200 text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(expense.id)}
                       style={{ cursor: "pointer" }}
-                      className="bg-red-900/30 text-red-400 hover:bg-red-900/50 px-2 py-1 rounded-lg"
+                      className="bg-red-900/30 text-red-400 hover:bg-red-900/50 px-3 py-1.5 rounded-lg transition-colors"
                     >
                       Delete
                     </button>
@@ -211,10 +217,88 @@ const Expenses = () => {
         )}
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {expenses.length === 0 ? (
+          <div className="bg-gray-800 rounded-lg p-8 text-center border border-gray-700">
+            <svg
+              className="w-12 h-12 text-gray-600 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 className="text-lg font-medium text-gray-200 mb-2">
+              No Expenses Yet
+            </h3>
+            <p className="text-gray-400 text-sm">
+              Start tracking by adding your first expense
+            </p>
+          </div>
+        ) : (
+          expenses.map((expense) => (
+            <div
+              key={expense.id}
+              className="bg-gray-800 rounded-lg p-4 border border-gray-700"
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-100 text-lg">
+                    {expense.merchant}
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    {expense.date.toLocaleDateString()}
+                  </p>
+                </div>
+                <p className="text-xl font-bold text-gray-100">
+                  ${expense.amount.toFixed(2)}
+                </p>
+              </div>
+              <div className="space-y-2 mb-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Category:</span>
+                  <span className="text-gray-200 font-medium">
+                    {expense.category}
+                  </span>
+                </div>
+                {expense.description && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Description:</span>
+                    <span className="text-gray-200 text-right flex-1 ml-2">
+                      {expense.description}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 pt-3 border-t border-gray-700">
+                <button
+                  onClick={() => handleEdit(expense)}
+                  className="flex-1 bg-gray-200 text-gray-900 hover:bg-gray-100 px-4 py-2.5 rounded-lg font-medium transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(expense.id)}
+                  className="flex-1 bg-red-900/30 text-red-400 hover:bg-red-900/50 px-4 py-2.5 rounded-lg font-medium transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-4 md:p-6 w-full max-w-md border border-gray-700 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-100 mb-4">
               {editingId ? "Edit Expense" : "Add Expense"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
