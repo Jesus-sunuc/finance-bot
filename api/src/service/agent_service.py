@@ -473,6 +473,71 @@ If you cannot parse the budget, return confidence: 0.0"""
                 "message": f"Failed to set budget: {str(e)}"
             }
     
+    def extract_receipt_data(self, base64_image: str) -> Optional[Dict[str, Any]]:
+        system_prompt = """You are an OCR system specialized in reading receipts. Extract the following information:
+
+- merchant: The store/restaurant name
+- amount: The total amount (number only, no $)
+- date: The date in YYYY-MM-DD format (parse from receipt, use current date if unclear)
+- category: Best guess for expense category (Groceries, Dining, Transportation, Entertainment, Shopping, Bills, Healthcare, Other)
+- items: List of items purchased (if visible and readable)
+- description: Brief description of the purchase
+- confidence: Your confidence in the extraction (0.0-1.0)
+
+Respond ONLY in JSON format:
+{
+    "merchant": "Whole Foods",
+    "amount": 45.67,
+    "date": "2025-11-19",
+    "category": "Groceries",
+    "items": ["Milk", "Bread", "Eggs"],
+    "description": "Weekly groceries",
+    "confidence": 0.95
+}
+
+If the image is not a receipt or you cannot read it, return confidence: 0.0"""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="gemma3-27b",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": f"Today is {datetime.now().strftime('%Y-%m-%d')}. Extract expense details from this receipt image:"
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                response_format={"type": "json_object"},
+                max_tokens=500
+            )
+            
+            parsed_data = json.loads(response.choices[0].message.content)
+            
+            if parsed_data.get('confidence', 0) >= 0.5:
+                return parsed_data
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error extracting receipt data: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
     def _generate_general_response(self, message: str) -> str:
         system_prompt = """You are a helpful financial assistant. Respond to the user's question or comment in a friendly, concise way. 
         Keep responses brief (1-2 sentences). If they're asking about features, mention that you can help track expenses, budgets, and provide financial insights."""
