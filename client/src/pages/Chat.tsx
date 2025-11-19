@@ -80,10 +80,14 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-100 mb-2">AI Chat</h1>
-        <p className="text-gray-400">Talk to your financial assistant</p>
+    <div className="flex flex-col h-full md:h-[calc(100vh-8rem)]">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+          AI Chat
+        </h1>
+        <p className="text-gray-400 text-sm md:text-base">
+          Talk to your financial assistant
+        </p>
       </div>
 
       <BudgetSidebar
@@ -92,7 +96,7 @@ const Chat = () => {
         onClose={() => setBudgetSidebarOpen(false)}
       />
 
-      <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-6 overflow-y-auto mb-4">
+      <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-3 md:p-6 overflow-y-auto mb-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <svg
@@ -175,14 +179,18 @@ const Chat = () => {
           onKeyPress={handleKeyPress}
           placeholder="Type your message..."
           disabled={sendMessageMutation.isPending}
-          className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+          className="flex-1 px-3 md:px-4 py-2.5 md:py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 text-sm md:text-base"
         />
         <button
           onClick={sendMessage}
           disabled={sendMessageMutation.isPending || !message.trim()}
-          className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 md:px-6 py-2.5 md:py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base min-w-[70px] md:min-w-20"
         >
-          Send
+          {sendMessageMutation.isPending ? (
+            <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          ) : (
+            "Send"
+          )}
         </button>
       </div>
     </div>
