@@ -5,7 +5,7 @@ import {
   useDeleteBudget,
 } from "../hooks/BudgetHooks";
 import type { BudgetCreate } from "../models/Budget";
-import { showSuccessToast, showErrorToast } from "../utils/toast";
+import toast from "react-hot-toast";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 
 const Budgets = () => {
@@ -36,17 +36,17 @@ const Budgets = () => {
     e.preventDefault();
 
     if (!formData.category || formData.amount <= 0) {
-      showErrorToast("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
       await createBudget.mutateAsync(formData);
-      showSuccessToast("Budget created successfully!");
+      toast.success("Budget created successfully!");
       setShowModal(false);
       resetForm();
     } catch (error) {
-      showErrorToast(
+      toast.error(
         error instanceof Error ? error.message : "Failed to create budget"
       );
     }
@@ -61,9 +61,9 @@ const Budgets = () => {
     if (deleteTargetId) {
       try {
         await deleteBudget.mutateAsync(deleteTargetId);
-        showSuccessToast("Budget deleted successfully!");
+        toast.success("Budget deleted successfully!");
       } catch (error) {
-        showErrorToast(
+        toast.error(
           error instanceof Error ? error.message : "Failed to delete budget"
         );
       }
@@ -115,7 +115,6 @@ const Budgets = () => {
         </button>
       </div>
 
-      {/* Create Budget Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
@@ -222,7 +221,6 @@ const Budgets = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={showDeleteModal}
         title="Delete Budget"

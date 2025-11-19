@@ -7,7 +7,6 @@ import type {
   DeleteTransactionRequest,
   GenerateReportRequest,
 } from "../models/Agent";
-import toast from "react-hot-toast";
 
 export const agentKeys = {
   decisions: ["agent", "decisions"] as const,
@@ -19,9 +18,6 @@ export const useSendMessage = () => {
       const res = await axiosClient.post("/api/agent/chat", request);
       return res.data;
     },
-    onError: () => {
-      toast.error("Failed to send message");
-    },
   });
 };
 
@@ -30,12 +26,6 @@ export const useAddExpenseFromText = () => {
     mutationFn: async (request: AddExpenseRequest): Promise<ChatResponse> => {
       const res = await axiosClient.post("/api/agent/add-expense", request);
       return res.data;
-    },
-    onSuccess: () => {
-      toast.success("Expense added successfully");
-    },
-    onError: () => {
-      toast.error("Failed to parse expense");
     },
   });
 };
@@ -61,14 +51,6 @@ export const useDeleteTransaction = () => {
       );
       return res.data;
     },
-    onSuccess: (data) => {
-      if (data.data?.success) {
-        toast.success("Transaction deleted successfully");
-      }
-    },
-    onError: () => {
-      toast.error("Failed to delete transaction");
-    },
   });
 };
 
@@ -79,12 +61,6 @@ export const useGenerateReport = () => {
     ): Promise<ChatResponse> => {
       const res = await axiosClient.post("/api/agent/generate-report", request);
       return res.data;
-    },
-    onSuccess: () => {
-      toast.success("Report generated successfully");
-    },
-    onError: () => {
-      toast.error("Failed to generate report");
     },
   });
 };

@@ -1,7 +1,6 @@
 import { type FC, type ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
-import { Toaster } from "react-hot-toast";
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
@@ -69,7 +68,6 @@ export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
 
   return (
     <>
-      <Toaster position="top-right" />
       <div className="flex h-screen bg-gray-900">
         <aside
           className={`${

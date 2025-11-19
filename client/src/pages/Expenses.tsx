@@ -7,7 +7,7 @@ import {
 } from "../hooks/ExpenseHooks";
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "../models/Expense";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
-import { showSuccessToast, showErrorToast } from "../utils/toast";
+import toast from "react-hot-toast";
 
 const Expenses = () => {
   const { data: expenses } = useExpensesQuery();
@@ -47,16 +47,16 @@ const Expenses = () => {
           id: editingId,
           data: formData as ExpenseUpdate,
         });
-        showSuccessToast("Expense updated successfully!");
+        toast.success("Expense updated successfully!");
       } else {
         await createExpense.mutateAsync(formData);
-        showSuccessToast("Expense created successfully!");
+        toast.success("Expense created successfully!");
       }
 
       setShowModal(false);
       resetForm();
     } catch (error) {
-      showErrorToast(
+      toast.error(
         error instanceof Error ? error.message : "Failed to save expense"
       );
     }
@@ -83,9 +83,8 @@ const Expenses = () => {
     if (deleteTargetId) {
       try {
         await deleteExpense.mutateAsync(deleteTargetId);
-        showSuccessToast("Expense deleted successfully!");
       } catch (error) {
-        showErrorToast(
+        toast.error(
           error instanceof Error ? error.message : "Failed to delete expense"
         );
       }
