@@ -1,4 +1,5 @@
 -- psql -U $POSTGRES_USER $POSTGRES_DB
+drop table if exists chat_messages cascade;
 
 drop table if exists agent_decision_log cascade;
 
@@ -12,3 +13,21 @@ create table
         result jsonb,
         created_at timestamp default current_timestamp
     );
+
+create table
+    chat_messages (
+        id serial primary key,
+        user_id text not null,
+        role text not null check (role in ('user', 'assistant')),
+        content text not null,
+        reasoning text,
+        timestamp timestamp default current_timestamp,
+        session_id text,
+        metadata jsonb
+    );
+
+create index idx_chat_messages_user_id on chat_messages (user_id);
+
+create index idx_chat_messages_timestamp on chat_messages (timestamp desc);
+
+create index idx_chat_messages_session on chat_messages (session_id);

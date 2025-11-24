@@ -1,18 +1,27 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendMessage } from "../hooks/AgentHooks";
+import { useChatMessages, useDeleteChatHistory } from "../hooks/ChatHooks";
 import BudgetSidebar from "../components/BudgetSidebar";
 import type { ChatMessage } from "../models/Agent";
 import type { Budget } from "../models/Budget";
+import toast from "react-hot-toast";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { data: savedMessages = [], isLoading } = useChatMessages();
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [budgetSidebarOpen, setBudgetSidebarOpen] = useState(false);
   const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = useSendMessage();
+  const deleteChatHistory = useDeleteChatHistory();
   const navigate = useNavigate();
+
+  const messages = useMemo(
+    () => [...savedMessages, ...localMessages],
+    [savedMessages, localMessages]
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,7 +40,7 @@ const Chat = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setLocalMessages((prev) => [...prev, userMessage]);
     const currentMessage = message;
     setMessage("");
 
@@ -47,19 +56,17 @@ const Chat = () => {
         reasoning: response.reasoning,
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      setLocalMessages((prev) => [...prev, assistantMessage]);
 
-      // Check for budget data and show sidebar
       if (response.action_taken === "set_budget" && response.data?.budget) {
         setCurrentBudget(response.data.budget as Budget);
         setBudgetSidebarOpen(true);
       }
 
-      // Check if agent wants to navigate somewhere
       if (response.data?.navigate_to) {
         setTimeout(() => {
           navigate(response.data!.navigate_to as string);
-        }, 1500); // Brief delay to show the message
+        }, 1500); 
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -68,7 +75,8 @@ const Chat = () => {
         content: "Sorry, I encountered an error. Please try again.",
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setLocalMessages((prev) => [...prev, errorMessage]);
+      toast.error("Failed to send message");
     }
   };
 
@@ -79,15 +87,56 @@ const Chat = () => {
     }
   };
 
+  const clearHistory = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to clear all chat history? This cannot be undone."
+      )
+    ) {
+      try {
+        await deleteChatHistory.mutateAsync();
+        setLocalMessages([]);
+        toast.success("Chat history cleared successfully");
+      } catch (error) {
+        console.error("Error clearing chat history:", error);
+        toast.error("Failed to clear chat history");
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col h-full md:h-[calc(100vh-8rem)]">
-      <div className="mb-4 md:mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
-          AI Chat
-        </h1>
-        <p className="text-gray-400 text-sm md:text-base">
-          Talk to your financial assistant
-        </p>
+      <div className="mb-4 md:mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+            AI Chat
+          </h1>
+          <p className="text-gray-400 text-sm md:text-base">
+            Talk to your financial assistant
+          </p>
+        </div>
+        {messages.length > 0 && (
+          <button
+            onClick={clearHistory}
+            className="px-3 py-1.5 md:px-4 md:py-2 bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+            title="Clear chat history"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            <span className="hidden sm:inline">Clear History</span>
+          </button>
+        )}
       </div>
 
       <BudgetSidebar
@@ -97,7 +146,14 @@ const Chat = () => {
       />
 
       <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-3 md:p-6 overflow-y-auto mb-4">
-        {messages.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="inline-block w-8 h-8 border-4 border-gray-600 border-t-primary-500 rounded-full animate-spin mb-4"></div>
+              <p className="text-gray-400">Loading chat history...</p>
+            </div>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <svg
               className="w-16 h-16 text-gray-600 mb-4"
@@ -118,9 +174,20 @@ const Chat = () => {
             <p className="text-gray-400 max-w-md">
               Try: "I spent $45 on groceries" or "Show me my budget"
             </p>
+            <p className="text-xs text-gray-500 mt-4">
+              💡 Your chat history will be saved automatically
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
+            {messages.length > 0 && (
+              <div className="text-center mb-4">
+                <span className="inline-block px-3 py-1 bg-gray-700 text-gray-400 text-xs rounded-full">
+                  {messages.length} message{messages.length !== 1 ? "s" : ""} in
+                  history
+                </span>
+              </div>
+            )}
             {messages.map((msg, index) => (
               <div
                 key={index}

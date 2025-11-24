@@ -1,18 +1,54 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Header
 from src.models.agent import ChatRequest, ChatResponse, AddExpenseRequest, DeleteTransactionRequest, GenerateReportRequest, SetBudgetRequest, AgentDecision
 from src.service.agent_service import AgentService
 from src.repository.agent_repository import AgentRepository
+from src.repository.chat_repository import ChatRepository
 from src.utils.decorators import handle_notion_errors
+import jwt
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 agent_service = AgentService()
 agent_repository = AgentRepository()
 
+
+def get_user_id_from_token(authorization: str) -> str:
+    try:
+        if not authorization or not authorization.startswith("Bearer "):
+            return "anonymous"
+        
+        token = authorization.split(" ")[1]
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get("sub", "anonymous")
+    except Exception:
+        return "anonymous"
+
+
 @router.post("/chat", response_model=ChatResponse)
 @handle_notion_errors
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, authorization: str = Header(None)):
     try:
+        user_id = get_user_id_from_token(authorization)
+        
+        ChatRepository.save_message(
+            user_id=user_id,
+            role="user",
+            content=request.message
+        )
+        
         response = agent_service.process_message(request.message)
+        
+        ChatRepository.save_message(
+            user_id=user_id,
+            role="assistant",
+            content=response.message,
+            reasoning=response.reasoning,
+            metadata={
+                "action_taken": response.action_taken,
+                "state": response.state,
+                "data": response.data
+            }
+        )
+        
         decision = AgentDecision(
             user_message=request.message,
             agent_state=response.state,
