@@ -29,7 +29,6 @@ spec:
           value: "finance-db"
         - name: TZ
           value: "America/Denver"
-        # Notion API Configuration
         - name: NOTION_API_KEY
           valueFrom:
             secretKeyRef:
@@ -40,8 +39,13 @@ spec:
             secretKeyRef:
               name: notion-secrets
               key: expenses-db-id
-        - name: NOTION_BUDGETS_DB_ID
+        - name: NOTION_BUDGET_DB_ID
           valueFrom:
             secretKeyRef:
               name: notion-secrets
               key: budgets-db-id
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: notion-secrets
+              key: openai-api-key
