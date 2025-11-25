@@ -1,1 +1,2 @@
 .env
+kube/notion-secrets.yml
