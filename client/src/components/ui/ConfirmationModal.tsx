@@ -43,13 +43,11 @@ const ConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancel}
       />
 
-      {/* Modal */}
       <div className="relative bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-w-md w-full mx-4 p-6 animate-in zoom-in-95 duration-200">
         <div className="flex items-start gap-4">
           <div

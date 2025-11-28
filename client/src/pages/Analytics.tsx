@@ -98,7 +98,6 @@ const Analytics = () => {
         <p className="text-gray-400">Spending trends and insights</p>
       </div>
 
-      {/* Time Period Selector */}
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setPeriod("month")}
@@ -142,7 +141,6 @@ const Analytics = () => {
         </button>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
           <p className="text-sm text-gray-400 mb-1">Total Spent</p>
@@ -203,7 +201,6 @@ const Analytics = () => {
           )}
         </div>
 
-        {/* Category Breakdown */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-semibold text-gray-100 mb-4">
             Category Breakdown
