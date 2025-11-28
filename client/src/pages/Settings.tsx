@@ -220,7 +220,9 @@ const Settings = () => {
               </label>
               <select
                 value={currency}
-                onChange={(e) => handleCurrencyChange(e.target.value as Currency)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value as Currency)
+                }
                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="USD">USD ($)</option>
@@ -236,7 +238,9 @@ const Settings = () => {
               </label>
               <select
                 value={dateFormat}
-                onChange={(e) => handleDateFormatChange(e.target.value as DateFormat)}
+                onChange={(e) =>
+                  handleDateFormatChange(e.target.value as DateFormat)
+                }
                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="MM/DD/YYYY">MM/DD/YYYY</option>
