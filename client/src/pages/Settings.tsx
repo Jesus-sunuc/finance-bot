@@ -25,13 +25,21 @@ const Settings = () => {
 
   useEffect(() => {
     localStorage.setItem("currency", currency);
-    toast.success(`Currency set to ${currency}`);
   }, [currency]);
 
   useEffect(() => {
     localStorage.setItem("dateFormat", dateFormat);
-    toast.success(`Date format set to ${dateFormat}`);
   }, [dateFormat]);
+
+  const handleCurrencyChange = (newCurrency: Currency) => {
+    setCurrency(newCurrency);
+    toast.success(`Currency set to ${newCurrency}`);
+  };
+
+  const handleDateFormatChange = (newFormat: DateFormat) => {
+    setDateFormat(newFormat);
+    toast.success(`Date format set to ${newFormat}`);
+  };
 
   const handleExportPDF = () => {
     try {
@@ -70,7 +78,7 @@ const Settings = () => {
             <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
             
             <div class="summary">
-              <div class="summary-card">
+              <div class="summary-card">o
                 <h3>Total Expenses</h3>
                 <p>$${totalExpenses.toFixed(2)}</p>
               </div>
@@ -212,7 +220,7 @@ const Settings = () => {
               </label>
               <select
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value as Currency)}
+                onChange={(e) => handleCurrencyChange(e.target.value as Currency)}
                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="USD">USD ($)</option>
@@ -228,7 +236,7 @@ const Settings = () => {
               </label>
               <select
                 value={dateFormat}
-                onChange={(e) => setDateFormat(e.target.value as DateFormat)}
+                onChange={(e) => handleDateFormatChange(e.target.value as DateFormat)}
                 className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="MM/DD/YYYY">MM/DD/YYYY</option>

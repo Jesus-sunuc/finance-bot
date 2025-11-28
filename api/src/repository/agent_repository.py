@@ -30,7 +30,21 @@ class AgentRepository:
             ORDER BY created_at DESC
             LIMIT %s
         """
-        return run_sql(query, (limit,))
+        rows = run_sql(query, (limit,))
+        
+        decisions = []
+        for row in rows:
+            decisions.append({
+                "id": row[0],
+                "user_message": row[1],
+                "agent_state": row[2],
+                "llm_reasoning": row[3],
+                "action_taken": row[4],
+                "result": row[5],
+                "created_at": row[6].isoformat() if row[6] else None
+            })
+        
+        return decisions
     
     def get_decision_by_id(self, decision_id: int) -> Optional[Dict[str, Any]]:
         query = """

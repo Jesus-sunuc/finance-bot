@@ -34,9 +34,16 @@ export const useAgentDecisions = (limit: number = 10) => {
   return useQuery({
     queryKey: [...agentKeys.decisions, limit],
     queryFn: async () => {
-      const res = await axiosClient.get(`/api/agent/decisions?limit=${limit}`);
+      const timestamp = new Date().getTime();
+      const res = await axiosClient.get(
+        `/api/agent/decisions?limit=${limit}&_t=${timestamp}`
+      );
+      console.log("API Response:", res.data);
       return res.data.decisions;
     },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
   });
 };
 
