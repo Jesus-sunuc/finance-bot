@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
-  const { data: savedMessages = [], isLoading } = useChatMessages();
+  const { data: savedMessages = [], isLoading, error } = useChatMessages();
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [budgetSidebarOpen, setBudgetSidebarOpen] = useState(false);
   const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
@@ -66,7 +66,7 @@ const Chat = () => {
       if (response.data?.navigate_to) {
         setTimeout(() => {
           navigate(response.data!.navigate_to as string);
-        }, 1500); 
+        }, 1500);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -151,6 +151,33 @@ const Chat = () => {
             <div className="text-center">
               <div className="inline-block w-8 h-8 border-4 border-gray-600 border-t-primary-500 rounded-full animate-spin mb-4"></div>
               <p className="text-gray-400">Loading chat history...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <svg
+                className="w-16 h-16 text-red-500 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h3 className="text-lg font-medium text-red-400 mb-2">
+                Error Loading Chat History
+              </h3>
+              <p className="text-gray-400 max-w-md text-sm">
+                {error instanceof Error ? error.message : "Unknown error"}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Check browser console for details
+              </p>
             </div>
           </div>
         ) : messages.length === 0 ? (

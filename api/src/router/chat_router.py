@@ -5,7 +5,7 @@ from src.repository.chat_repository import ChatRepository
 import jwt
 import os
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 class SaveMessageRequest(BaseModel):
