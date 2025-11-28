@@ -139,7 +139,6 @@ class NotionService:
             return ""
         return "".join([text.get("plain_text", "") for text in rich_text_array])
     
-    # Budget methods
     def get_all_budgets(self) -> List[dict]:
         try:
             response = self.client.databases.query(database_id=self.budgets_db_id)
@@ -200,13 +199,11 @@ class NotionService:
         from datetime import datetime
         properties = {}
         
-        # Find the title property
         for prop_name, prop_data in actual_properties.items():
             if prop_data.get("type") == "title":
                 properties[prop_name] = {"title": [{"text": {"content": f"{category} Budget"}}]}
                 break
         
-        # Map standard properties
         property_mapping = {
             "category": ("rich_text", [{"text": {"content": category}}]),
             "amount": ("number", amount),
@@ -255,7 +252,6 @@ class NotionService:
                 date_data = prop_data.get("date")
                 result["start_date"] = date_data.get("start", "") if date_data else ""
         
-        # Calculate remaining and percentage
         result["remaining"] = result["amount"] - result["spent"]
         result["percentage"] = (result["spent"] / result["amount"] * 100) if result["amount"] > 0 else 0
         
