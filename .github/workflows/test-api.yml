@@ -38,10 +38,6 @@ jobs:
         working-directory: ./api
         env:
           PYTHONPATH: .
-          NOTION_API_KEY: test-key-123
-          NOTION_EXPENSES_DB_ID: test-expenses-db-id
-          NOTION_BUDGET_DB_ID: test-budget-db-id
-          DATABASE_URL: postgresql://test:test@localhost/test
         run: |
           pytest -v --tb=short
 

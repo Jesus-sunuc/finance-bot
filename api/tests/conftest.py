@@ -1,6 +1,17 @@
 import pytest
-from fastapi.testclient import TestClient
-from src.main import app
+import os
+from unittest.mock import patch, MagicMock
+
+# Set dummy environment variables before any imports
+os.environ["NOTION_API_KEY"] = "test-key"
+os.environ["NOTION_EXPENSES_DB_ID"] = "test-expenses-db"
+os.environ["NOTION_BUDGET_DB_ID"] = "test-budget-db"
+os.environ["DATABASE_URL"] = "postgresql://test:test@localhost/test"
+
+# Mock NotionService to prevent actual API calls
+with patch('src.service.notion_service.Client'):
+    from fastapi.testclient import TestClient
+    from src.main import app
 
 
 @pytest.fixture
