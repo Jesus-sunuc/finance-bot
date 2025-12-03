@@ -10,6 +10,10 @@ import type { BudgetCreate } from "../models/Budget";
 import toast from "react-hot-toast";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 import { useCurrency } from "../contexts/CurrencyContext";
+import TextInput from "../components/ui/TextInput";
+import NumberInput from "../components/ui/NumberInput";
+import SelectInput from "../components/ui/SelectInput";
+import DateInput from "../components/ui/DateInput";
 
 const Budgets = () => {
   const { data: budgets, isLoading } = useBudgets();
@@ -43,7 +47,8 @@ const Budgets = () => {
       );
 
       const remaining = budget.amount - actualSpent;
-      const percentage = budget.amount > 0 ? (actualSpent / budget.amount) * 100 : 0;
+      const percentage =
+        budget.amount > 0 ? (actualSpent / budget.amount) * 100 : 0;
 
       return {
         ...budget,
@@ -61,7 +66,9 @@ const Budgets = () => {
 
     budgetsWithActualSpending.forEach((budget) => {
       const date = new Date(budget.startDate);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}`;
 
       if (!grouped[monthKey]) {
         grouped[monthKey] = [];
@@ -215,78 +222,54 @@ const Budgets = () => {
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Category *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="e.g., Dining, Transportation"
-                    required
-                  />
-                </div>
+                <TextInput
+                  label="Category"
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
+                  placeholder="e.g., Dining, Transportation"
+                  required
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Amount *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.amount || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        amount: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
+                <NumberInput
+                  label="Amount"
+                  value={formData.amount || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      amount: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  prefix="$"
+                  step="0.01"
+                  placeholder="0.00"
+                  required
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Period
-                  </label>
-                  <select
-                    value={formData.period}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        period: e.target.value as
-                          | "monthly"
-                          | "weekly"
-                          | "yearly",
-                      })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
+                <SelectInput
+                  label="Period"
+                  value={formData.period}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      period: e.target.value as "monthly" | "weekly" | "yearly",
+                    })
+                  }
+                  options={[
+                    { value: "monthly", label: "Monthly" },
+                    { value: "weekly", label: "Weekly" },
+                    { value: "yearly", label: "Yearly" },
+                  ]}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startDate: e.target.value })
-                    }
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
+                <DateInput
+                  label="Start Date"
+                  value={formData.startDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, startDate: e.target.value })
+                  }
+                />
               </div>
 
               <div className="flex gap-3 mt-6">
@@ -310,8 +293,8 @@ const Budgets = () => {
                       ? "Updating..."
                       : "Update"
                     : createBudget.isPending
-                      ? "Creating..."
-                      : "Create"}
+                    ? "Creating..."
+                    : "Create"}
                 </button>
               </div>
             </form>
@@ -335,7 +318,8 @@ const Budgets = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
           <p className="text-gray-400 mt-4">Loading budgets...</p>
         </div>
-      ) : !budgetsWithActualSpending || budgetsWithActualSpending.length === 0 ? (
+      ) : !budgetsWithActualSpending ||
+        budgetsWithActualSpending.length === 0 ? (
         <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
           <svg
             className="w-16 h-16 text-gray-600 mx-auto mb-4"
@@ -385,109 +369,117 @@ const Budgets = () => {
                 {/* Budget Cards Grid */}
                 <div className="grid gap-6 md:grid-cols-2">
                   {monthBudgets.map((budget) => (
-            <div
-              key={budget.id}
-              className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-100">
-                    {budget.category}
-                  </h3>
-                  <p className="text-sm text-gray-400 capitalize">
-                    {new Date(budget.startDate).toLocaleDateString("en-US", {
-                      month: "long",
-                      year: "numeric",
-                    })}{" "}
-                    • {budget.period}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(budget.percentage)}
-                  <button
-                    onClick={() => handleEdit(budget.id)}
-                    className="text-blue-400 hover:text-blue-300 transition-colors"
-                    aria-label="Edit budget"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <div
+                      key={budget.id}
+                      className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(budget.id)}
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                    aria-label="Delete budget"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className="mb-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Spent:</span>
-                  <span className="text-gray-200 font-medium">
-                    {formatCurrency(budget.spent)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Limit:</span>
-                  <span className="text-gray-200 font-medium">
-                    {formatCurrency(budget.amount)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Remaining:</span>
-                  <span
-                    className={`font-medium ${
-                      budget.remaining >= 0 ? "text-green-400" : "text-red-400"
-                    }`}
-                  >
-                    {formatCurrency(Math.abs(budget.remaining))}
-                    {budget.remaining < 0 && " over"}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-400">Progress</span>
-                  <span className="text-gray-300 font-medium">
-                    {(budget.percentage || 0).toFixed(0)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
-                      budget.percentage || 0
-                    )}`}
-                    style={{
-                      width: `${Math.min(budget.percentage || 0, 100)}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-100">
+                            {budget.category}
+                          </h3>
+                          <p className="text-sm text-gray-400 capitalize">
+                            {new Date(budget.startDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "long",
+                                year: "numeric",
+                              }
+                            )}{" "}
+                            • {budget.period}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(budget.percentage)}
+                          <button
+                            onClick={() => handleEdit(budget.id)}
+                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                            aria-label="Edit budget"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(budget.id)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                            aria-label="Delete budget"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="mb-4 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Spent:</span>
+                          <span className="text-gray-200 font-medium">
+                            {formatCurrency(budget.spent)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Limit:</span>
+                          <span className="text-gray-200 font-medium">
+                            {formatCurrency(budget.amount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Remaining:</span>
+                          <span
+                            className={`font-medium ${
+                              budget.remaining >= 0
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {formatCurrency(Math.abs(budget.remaining))}
+                            {budget.remaining < 0 && " over"}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-400">Progress</span>
+                          <span className="text-gray-300 font-medium">
+                            {(budget.percentage || 0).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
+                              budget.percentage || 0
+                            )}`}
+                            style={{
+                              width: `${Math.min(
+                                budget.percentage || 0,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
