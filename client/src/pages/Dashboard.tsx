@@ -8,6 +8,40 @@ const Dashboard = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  const budgetsWithActualSpending = useMemo(() => {
+    if (!budgets || !expenses) return budgets || [];
+
+    const currentMonth = selectedDate.getMonth();
+    const currentYear = selectedDate.getFullYear();
+
+    return budgets.map((budget) => {
+      const categoryExpenses = expenses.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        const isSameMonth =
+          expenseDate.getMonth() === currentMonth &&
+          expenseDate.getFullYear() === currentYear;
+        const isSameCategory =
+          expense.category.toLowerCase() === budget.category.toLowerCase();
+        return isSameMonth && isSameCategory;
+      });
+
+      const actualSpent = categoryExpenses.reduce(
+        (sum, expense) => sum + expense.amount,
+        0
+      );
+
+      const remaining = budget.amount - actualSpent;
+      const percentage = budget.amount > 0 ? (actualSpent / budget.amount) * 100 : 0;
+
+      return {
+        ...budget,
+        spent: actualSpent,
+        remaining,
+        percentage,
+      };
+    });
+  }, [budgets, expenses, selectedDate]);
+
   const stats = useMemo(() => {
     const currentMonth = selectedDate.getMonth();
     const currentYear = selectedDate.getFullYear();
@@ -28,9 +62,9 @@ const Dashboard = () => {
     const transactionCount = monthlyExpenses.length;
 
     const totalBudget =
-      budgets?.reduce((sum, budget) => sum + budget.amount, 0) || 0;
+      budgetsWithActualSpending?.reduce((sum, budget) => sum + budget.amount, 0) || 0;
     const totalBudgetSpent =
-      budgets?.reduce((sum, budget) => sum + budget.spent, 0) || 0;
+      budgetsWithActualSpending?.reduce((sum, budget) => sum + budget.spent, 0) || 0;
     const budgetRemaining = totalBudget - totalBudgetSpent;
 
     return {
@@ -39,12 +73,14 @@ const Dashboard = () => {
       transactionCount,
       totalBudget,
     };
-  }, [expenses, budgets, selectedDate]);
+  }, [expenses, budgetsWithActualSpending, selectedDate]);
 
   const topBudgets = useMemo(() => {
-    if (!budgets) return [];
-    return [...budgets].sort((a, b) => b.amount - a.amount).slice(0, 3);
-  }, [budgets]);
+    if (!budgetsWithActualSpending) return [];
+    return [...budgetsWithActualSpending]
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3);
+  }, [budgetsWithActualSpending]);
 
   const getProgressColor = (percentage: number): string => {
     if (percentage < 70) return "bg-green-500";
@@ -263,7 +299,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Budget Progress Section */}
       <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-100">Budget Overview</h2>
