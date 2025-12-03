@@ -8,11 +8,13 @@ import {
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "../models/Expense";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 const Expenses = () => {
   const { data: expenses } = useExpensesQuery();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
+  const { formatCurrency } = useCurrency();
   const deleteExpense = useDeleteExpense();
 
   const [showModal, setShowModal] = useState(false);
@@ -191,7 +193,7 @@ const Expenses = () => {
                     {expense.description || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-100">
-                    ${expense.amount.toFixed(2)}
+                    {formatCurrency(expense.amount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
                     <button
@@ -256,7 +258,7 @@ const Expenses = () => {
                   </p>
                 </div>
                 <p className="text-xl font-bold text-gray-100">
-                  ${expense.amount.toFixed(2)}
+                  {formatCurrency(expense.amount)}
                 </p>
               </div>
               <div className="space-y-2 mb-3">

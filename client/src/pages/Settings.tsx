@@ -1,44 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useExpensesQuery } from "../hooks/ExpenseHooks";
 import { useBudgets } from "../hooks/BudgetHooks";
 import { useDeleteChatHistory } from "../hooks/ChatHooks";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
-
-type Currency = "USD" | "EUR" | "GBP" | "CAD" | "AUD";
-type DateFormat = "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
+import { useCurrency, type Currency } from "../contexts/CurrencyContext";
 
 const Settings = () => {
   const { data: expenses } = useExpensesQuery();
   const { data: budgets } = useBudgets();
   const deleteChatHistory = useDeleteChatHistory();
+  const { currency, setCurrency, formatCurrency } = useCurrency();
 
   const [showClearDataModal, setShowClearDataModal] = useState(false);
-
-  const [currency, setCurrency] = useState<Currency>(() => {
-    return (localStorage.getItem("currency") as Currency) || "USD";
-  });
-
-  const [dateFormat, setDateFormat] = useState<DateFormat>(() => {
-    return (localStorage.getItem("dateFormat") as DateFormat) || "MM/DD/YYYY";
-  });
-
-  useEffect(() => {
-    localStorage.setItem("currency", currency);
-  }, [currency]);
-
-  useEffect(() => {
-    localStorage.setItem("dateFormat", dateFormat);
-  }, [dateFormat]);
 
   const handleCurrencyChange = (newCurrency: Currency) => {
     setCurrency(newCurrency);
     toast.success(`Currency set to ${newCurrency}`);
-  };
-
-  const handleDateFormatChange = (newFormat: DateFormat) => {
-    setDateFormat(newFormat);
-    toast.success(`Date format set to ${newFormat}`);
   };
 
   const handleExportPDF = () => {
@@ -76,15 +54,15 @@ const Settings = () => {
           <body>
             <h1>Finance Report</h1>
             <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
-            
+
             <div class="summary">
-              <div class="summary-card">o
+              <div class="summary-card">
                 <h3>Total Expenses</h3>
-                <p>$${totalExpenses.toFixed(2)}</p>
+                <p>${formatCurrency(totalExpenses)}</p>
               </div>
               <div class="summary-card">
                 <h3>Total Budgets</h3>
-                <p>$${totalBudgets.toFixed(2)}</p>
+                <p>${formatCurrency(totalBudgets)}</p>
               </div>
               <div class="summary-card">
                 <h3>Transactions</h3>
@@ -114,7 +92,7 @@ const Settings = () => {
                       <td>${new Date(e.date).toLocaleDateString()}</td>
                       <td>${e.merchant}</td>
                       <td>${e.category}</td>
-                      <td>$${e.amount.toFixed(2)}</td>
+                      <td>${formatCurrency(e.amount)}</td>
                       <td>${e.description || "-"}</td>
                     </tr>
                   `
@@ -146,9 +124,9 @@ const Settings = () => {
                       (b) => `
                     <tr>
                       <td>${b.category}</td>
-                      <td>$${b.amount.toFixed(2)}</td>
-                      <td>$${b.spent.toFixed(2)}</td>
-                      <td>$${b.remaining.toFixed(2)}</td>
+                      <td>${formatCurrency(b.amount)}</td>
+                      <td>${formatCurrency(b.spent)}</td>
+                      <td>${formatCurrency(b.remaining)}</td>
                       <td>${b.percentage.toFixed(1)}%</td>
                     </tr>
                   `
@@ -230,22 +208,6 @@ const Settings = () => {
                 <option value="GBP">GBP (£)</option>
                 <option value="CAD">CAD ($)</option>
                 <option value="AUD">AUD ($)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Date Format
-              </label>
-              <select
-                value={dateFormat}
-                onChange={(e) =>
-                  handleDateFormatChange(e.target.value as DateFormat)
-                }
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
               </select>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGenerateReport } from "../hooks/AgentHooks";
 import type { ChatResponse } from "../models/Agent";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 interface ReportData {
   success: boolean;
@@ -32,6 +33,7 @@ const Reports = () => {
     null
   );
   const generateReportMutation = useGenerateReport();
+  const { formatCurrency } = useCurrency();
 
   const handleGenerateReport = async (reportType: string) => {
     try {
@@ -222,7 +224,7 @@ const Reports = () => {
                     <div>
                       <p className="text-xs text-gray-400">Daily Average</p>
                       <p className="text-lg font-bold text-gray-100">
-                        ${reportData.dailyAverage.toFixed(2)}/day
+                        {formatCurrency(reportData.dailyAverage)}/day
                       </p>
                     </div>
                     <div>
@@ -322,7 +324,7 @@ const Reports = () => {
                           </div>
                         </div>
                         <span className="text-sm font-medium text-gray-200">
-                          ${day.amount.toFixed(2)}
+                          {formatCurrency(day.amount)}
                         </span>
                       </div>
                     ))}
@@ -363,7 +365,7 @@ const Reports = () => {
                             {item.category}
                           </span>
                           <span className="text-sm text-gray-400">
-                            ${item.total.toFixed(2)} ({item.count} transactions)
+                            {formatCurrency(item.total)} ({item.count} transactions)
                           </span>
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">

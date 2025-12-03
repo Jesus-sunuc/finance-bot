@@ -9,6 +9,7 @@ import { useExpensesQuery } from "../hooks/ExpenseHooks";
 import type { BudgetCreate } from "../models/Budget";
 import toast from "react-hot-toast";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 const Budgets = () => {
   const { data: budgets, isLoading } = useBudgets();
@@ -16,6 +17,7 @@ const Budgets = () => {
   const createBudget = useCreateBudget();
   const updateBudget = useUpdateBudget();
   const deleteBudget = useDeleteBudget();
+  const { formatCurrency } = useCurrency();
 
   const budgetsWithActualSpending = useMemo(() => {
     if (!budgets || !expenses) return budgets || [];
@@ -446,13 +448,13 @@ const Budgets = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Spent:</span>
                   <span className="text-gray-200 font-medium">
-                    ${budget.spent.toFixed(2)}
+                    {formatCurrency(budget.spent)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Limit:</span>
                   <span className="text-gray-200 font-medium">
-                    ${budget.amount.toFixed(2)}
+                    {formatCurrency(budget.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -462,7 +464,7 @@ const Budgets = () => {
                       budget.remaining >= 0 ? "text-green-400" : "text-red-400"
                     }`}
                   >
-                    ${Math.abs(budget.remaining).toFixed(2)}
+                    {formatCurrency(Math.abs(budget.remaining))}
                     {budget.remaining < 0 && " over"}
                   </span>
                 </div>

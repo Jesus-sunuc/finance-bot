@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useBudgets } from "../hooks/BudgetHooks";
 import { useExpensesQuery } from "../hooks/ExpenseHooks";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 type TimePeriod = "month" | "last-month" | "3-months" | "year";
 
@@ -8,6 +9,7 @@ const Analytics = () => {
   const { data: budgets } = useBudgets();
   const { data: expenses } = useExpensesQuery();
   const [period, setPeriod] = useState<TimePeriod>("month");
+  const { formatCurrency } = useCurrency();
 
   const filteredExpenses = useMemo(() => {
     if (!expenses) return [];
@@ -145,7 +147,7 @@ const Analytics = () => {
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
           <p className="text-sm text-gray-400 mb-1">Total Spent</p>
           <p className="text-2xl font-bold text-gray-100">
-            ${analytics.total.toFixed(2)}
+            {formatCurrency(analytics.total)}
           </p>
         </div>
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
@@ -155,7 +157,7 @@ const Analytics = () => {
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
           <p className="text-sm text-gray-400 mb-1">Avg per Transaction</p>
           <p className="text-2xl font-bold text-gray-100">
-            ${analytics.average.toFixed(2)}
+            {formatCurrency(analytics.average)}
           </p>
         </div>
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
@@ -182,7 +184,7 @@ const Analytics = () => {
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-xs text-gray-400">
                       <span>{item.date}</span>
-                      <span>${item.amount.toFixed(2)}</span>
+                      <span>{formatCurrency(item.amount)}</span>
                     </div>
                     <div className="h-6 bg-gray-900 rounded overflow-hidden">
                       <div
@@ -224,7 +226,7 @@ const Analytics = () => {
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-gray-300">{item.category}</span>
                       <span className="text-gray-400">
-                        ${item.total.toFixed(2)} ({item.percentage.toFixed(1)}%)
+                        {formatCurrency(item.total)} ({item.percentage.toFixed(1)}%)
                       </span>
                     </div>
                     <div className="h-3 bg-gray-900 rounded-full overflow-hidden">

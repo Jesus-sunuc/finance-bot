@@ -20,6 +20,7 @@ import { AuthError } from "./components/auth/AuthError";
 import { AuthenticatedLayout } from "./components/layout/AuthenticatedLayout";
 import { PublicLayout } from "./components/layout/PublicLayout";
 import { Toaster } from "./utils/toast";
+import { CurrencyProvider } from "./contexts/CurrencyContext";
 
 function App() {
   const auth = useAuth();
@@ -51,33 +52,37 @@ function App() {
 
   if (auth.isAuthenticated) {
     return (
-      <AuthenticatedLayout>
-        <Toaster />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/budgets" element={<Budgets />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/scanner" element={<ReceiptScanner />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/about" element={<About />} />
-        </Routes>
-      </AuthenticatedLayout>
+      <CurrencyProvider>
+        <AuthenticatedLayout>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/budgets" element={<Budgets />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/scanner" element={<ReceiptScanner />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </AuthenticatedLayout>
+      </CurrencyProvider>
     );
   }
 
   return (
-    <PublicLayout>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="*" element={<Landing />} />
-      </Routes>
-    </PublicLayout>
+    <CurrencyProvider>
+      <PublicLayout>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="*" element={<Landing />} />
+        </Routes>
+      </PublicLayout>
+    </CurrencyProvider>
   );
 }
 

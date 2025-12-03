@@ -1,10 +1,12 @@
 import { useBudgets } from "../hooks/BudgetHooks";
 import { useExpensesQuery } from "../hooks/ExpenseHooks";
 import { useMemo, useState } from "react";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 const Dashboard = () => {
   const { data: budgets } = useBudgets();
   const { data: expenses } = useExpensesQuery();
+  const { formatCurrency } = useCurrency();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -219,7 +221,7 @@ const Dashboard = () => {
             </svg>
           </div>
           <p className="text-3xl font-bold text-gray-100">
-            ${stats.totalSpent.toFixed(2)}
+            {formatCurrency(stats.totalSpent)}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {isCurrentMonth() ? "This month" : getMonthYearDisplay()}
@@ -248,7 +250,7 @@ const Dashboard = () => {
               stats.budgetRemaining >= 0 ? "text-gray-100" : "text-red-400"
             }`}
           >
-            ${Math.abs(stats.budgetRemaining).toFixed(2)}
+            {formatCurrency(Math.abs(stats.budgetRemaining))}
             {stats.budgetRemaining < 0 && " over"}
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -299,7 +301,7 @@ const Dashboard = () => {
             </svg>
           </div>
           <p className="text-3xl font-bold text-gray-100">
-            ${stats.totalBudget.toFixed(2)}
+            {formatCurrency(stats.totalBudget)}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {budgets?.length || 0} budgets
@@ -358,13 +360,13 @@ const Dashboard = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Budget:</span>
                     <span className="font-medium text-gray-200">
-                      ${budget.amount.toFixed(2)}
+                      {formatCurrency(budget.amount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Spent:</span>
                     <span className="font-medium text-gray-200">
-                      ${budget.spent.toFixed(2)}
+                      {formatCurrency(budget.spent)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -376,7 +378,7 @@ const Dashboard = () => {
                           : "text-red-400"
                       }`}
                     >
-                      ${Math.abs(budget.remaining).toFixed(2)}
+                      {formatCurrency(Math.abs(budget.remaining))}
                       {budget.remaining < 0 && " over"}
                     </span>
                   </div>
