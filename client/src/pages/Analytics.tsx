@@ -103,7 +103,7 @@ const Analytics = () => {
           onClick={() => setPeriod("month")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             period === "month"
-              ? "bg-primary-600 text-white"
+              ? "bg-gray-500 text-white"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
         >
@@ -113,7 +113,7 @@ const Analytics = () => {
           onClick={() => setPeriod("last-month")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             period === "last-month"
-              ? "bg-primary-600 text-white"
+              ? "bg-gray-500 text-white"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
         >
@@ -123,7 +123,7 @@ const Analytics = () => {
           onClick={() => setPeriod("3-months")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             period === "3-months"
-              ? "bg-primary-600 text-white"
+              ? "bg-gray-500 text-white"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
         >
@@ -133,7 +133,7 @@ const Analytics = () => {
           onClick={() => setPeriod("year")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             period === "year"
-              ? "bg-primary-600 text-white"
+              ? "bg-gray-500 text-white"
               : "bg-gray-800 text-gray-300 hover:bg-gray-700"
           }`}
         >
@@ -186,7 +186,7 @@ const Analytics = () => {
                     </div>
                     <div className="h-6 bg-gray-900 rounded overflow-hidden">
                       <div
-                        className="h-full bg-primary-600 transition-all duration-300"
+                        className="h-full bg-blue-600 transition-all duration-300"
                         style={{ width: `${width}%` }}
                       />
                     </div>
