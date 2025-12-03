@@ -14,7 +14,15 @@ const Dashboard = () => {
     const currentMonth = selectedDate.getMonth();
     const currentYear = selectedDate.getFullYear();
 
-    return budgets.map((budget) => {
+    const monthBudgets = budgets.filter((budget) => {
+      const budgetStartDate = new Date(budget.startDate);
+      return (
+        budgetStartDate.getMonth() === currentMonth &&
+        budgetStartDate.getFullYear() === currentYear
+      );
+    });
+
+    return monthBudgets.map((budget) => {
       const categoryExpenses = expenses.filter((expense) => {
         const expenseDate = new Date(expense.date);
         const isSameMonth =

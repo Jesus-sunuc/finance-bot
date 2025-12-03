@@ -18,15 +18,16 @@ const Budgets = () => {
   const budgetsWithActualSpending = useMemo(() => {
     if (!budgets || !expenses) return budgets || [];
 
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-
     return budgets.map((budget) => {
+      const budgetStartDate = new Date(budget.startDate);
+      const budgetMonth = budgetStartDate.getMonth();
+      const budgetYear = budgetStartDate.getFullYear();
+
       const categoryExpenses = expenses.filter((expense) => {
         const expenseDate = new Date(expense.date);
         const isSameMonth =
-          expenseDate.getMonth() === currentMonth &&
-          expenseDate.getFullYear() === currentYear;
+          expenseDate.getMonth() === budgetMonth &&
+          expenseDate.getFullYear() === budgetYear;
         const isSameCategory =
           expense.category.toLowerCase() === budget.category.toLowerCase();
         return isSameMonth && isSameCategory;
@@ -48,6 +49,28 @@ const Budgets = () => {
       };
     });
   }, [budgets, expenses]);
+
+  const budgetsByMonth = useMemo(() => {
+    if (!budgetsWithActualSpending) return {};
+
+    const grouped: Record<string, typeof budgetsWithActualSpending> = {};
+
+    budgetsWithActualSpending.forEach((budget) => {
+      const date = new Date(budget.startDate);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = [];
+      }
+      grouped[monthKey].push(budget);
+    });
+
+    return grouped;
+  }, [budgetsWithActualSpending]);
+
+  const sortedMonthKeys = useMemo(() => {
+    return Object.keys(budgetsByMonth).sort((a, b) => b.localeCompare(a));
+  }, [budgetsByMonth]);
 
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -303,8 +326,26 @@ const Budgets = () => {
           </button>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {budgetsWithActualSpending.map((budget) => (
+        <div className="space-y-8">
+          {sortedMonthKeys.map((monthKey) => {
+            const monthBudgets = budgetsByMonth[monthKey];
+            const [year, month] = monthKey.split("-");
+            const monthDate = new Date(parseInt(year), parseInt(month) - 1);
+            const monthLabel = monthDate.toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            });
+
+            return (
+              <div key={monthKey}>
+                {/* Month Header */}
+                <h2 className="text-xl font-bold text-gray-100 mb-4">
+                  {monthLabel}
+                </h2>
+
+                {/* Budget Cards Grid */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {monthBudgets.map((budget) => (
             <div
               key={budget.id}
               className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
@@ -315,7 +356,11 @@ const Budgets = () => {
                     {budget.category}
                   </h3>
                   <p className="text-sm text-gray-400 capitalize">
-                    {budget.period} budget
+                    {new Date(budget.startDate).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    • {budget.period}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -385,7 +430,11 @@ const Budgets = () => {
                 </div>
               </div>
             </div>
-          ))}
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
