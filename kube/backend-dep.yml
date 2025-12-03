@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: finance-api
-        image: jesus6190/finance-backend:1.0.10
+        image: jesus6190/finance-backend:1.0.12
         ports:
         - containerPort: 8080
         env:

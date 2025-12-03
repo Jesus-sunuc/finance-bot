@@ -146,18 +146,18 @@ export default function BudgetSidebar({
                     </span>
                     <span
                       className={`text-sm font-semibold ${getTextColor(
-                        budget.percentage
+                        budget.percentage || 0
                       )}`}
                     >
-                      {budget.percentage.toFixed(0)}%
+                      {(budget.percentage || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
-                        budget.percentage
+                        budget.percentage || 0
                       )}`}
-                      style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                      style={{ width: `${Math.min(budget.percentage || 0, 100)}%` }}
                     />
                   </div>
                 </div>

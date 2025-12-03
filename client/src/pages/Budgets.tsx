@@ -334,15 +334,15 @@ const Budgets = () => {
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-400">Progress</span>
                   <span className="text-gray-300 font-medium">
-                    {budget.percentage.toFixed(0)}%
+                    {(budget.percentage || 0).toFixed(0)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
-                      budget.percentage
+                      budget.percentage || 0
                     )}`}
-                    style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                    style={{ width: `${Math.min(budget.percentage || 0, 100)}%` }}
                   ></div>
                 </div>
               </div>

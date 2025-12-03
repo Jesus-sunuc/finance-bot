@@ -1,14 +1,16 @@
 import { useBudgets } from "../hooks/BudgetHooks";
 import { useExpensesQuery } from "../hooks/ExpenseHooks";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 const Dashboard = () => {
   const { data: budgets } = useBudgets();
   const { data: expenses } = useExpensesQuery();
 
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   const stats = useMemo(() => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+    const currentMonth = selectedDate.getMonth();
+    const currentYear = selectedDate.getFullYear();
 
     const monthlyExpenses =
       expenses?.filter((expense) => {
@@ -37,7 +39,7 @@ const Dashboard = () => {
       transactionCount,
       totalBudget,
     };
-  }, [expenses, budgets]);
+  }, [expenses, budgets, selectedDate]);
 
   const topBudgets = useMemo(() => {
     if (!budgets) return [];
@@ -56,6 +58,37 @@ const Dashboard = () => {
     return "text-red-400";
   };
 
+  const goToPreviousMonth = () => {
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1)
+    );
+  };
+
+  const goToNextMonth = () => {
+    setSelectedDate(
+      new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1)
+    );
+  };
+
+  const goToCurrentMonth = () => {
+    setSelectedDate(new Date());
+  };
+
+  const isCurrentMonth = () => {
+    const now = new Date();
+    return (
+      selectedDate.getMonth() === now.getMonth() &&
+      selectedDate.getFullYear() === now.getFullYear()
+    );
+  };
+
+  const getMonthYearDisplay = () => {
+    return selectedDate.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -63,6 +96,64 @@ const Dashboard = () => {
         <p className="text-gray-400">
           Welcome back! Here's your financial overview.
         </p>
+      </div>
+
+      <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={goToPreviousMonth}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Previous
+          </button>
+
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold text-gray-100">
+              {getMonthYearDisplay()}
+            </h2>
+            {!isCurrentMonth() && (
+              <button
+                onClick={goToCurrentMonth}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors"
+              >
+                Today
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={goToNextMonth}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
+          >
+            Next
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -86,7 +177,9 @@ const Dashboard = () => {
           <p className="text-3xl font-bold text-gray-100">
             ${stats.totalSpent.toFixed(2)}
           </p>
-          <p className="text-xs text-gray-500 mt-1">This month</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {isCurrentMonth() ? "This month" : getMonthYearDisplay()}
+          </p>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -139,7 +232,9 @@ const Dashboard = () => {
           <p className="text-3xl font-bold text-gray-100">
             {stats.transactionCount}
           </p>
-          <p className="text-xs text-gray-500 mt-1">This month</p>
+          <p className="text-xs text-gray-500 mt-1">
+            {isCurrentMonth() ? "This month" : getMonthYearDisplay()}
+          </p>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -249,18 +344,18 @@ const Dashboard = () => {
                     <span className="text-xs text-gray-400">Progress</span>
                     <span
                       className={`text-xs font-semibold ${getTextColor(
-                        budget.percentage
+                        budget.percentage || 0
                       )}`}
                     >
-                      {budget.percentage.toFixed(0)}%
+                      {(budget.percentage || 0).toFixed(0)}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-600 rounded-full h-2.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
-                        budget.percentage
+                        budget.percentage || 0
                       )}`}
-                      style={{ width: `${Math.min(budget.percentage, 100)}%` }}
+                      style={{ width: `${Math.min(budget.percentage || 0, 100)}%` }}
                     />
                   </div>
                 </div>
