@@ -28,6 +28,10 @@ jobs:
         working-directory: ./client
         run: npm ci
 
+      - name: Run linter
+        working-directory: ./client
+        run: npm run lint
+
       - name: Run tests
         working-directory: ./client
         run: npm test -- --run
