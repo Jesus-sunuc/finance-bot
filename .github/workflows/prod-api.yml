@@ -32,6 +32,8 @@ jobs:
 
       - name: Run tests
         working-directory: ./api
+        env:
+          PYTHONPATH: .
         run: pytest -v
 
   build-and-push:
