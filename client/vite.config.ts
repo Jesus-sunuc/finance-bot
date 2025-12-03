@@ -14,4 +14,9 @@ export default defineConfig({
       "/api": "http://api:8080",
     },
   },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
 });

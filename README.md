@@ -678,10 +678,35 @@ Features:
 **Delivered:**
 
 Rubric Items:
-
+- [x] CI/CD - unit tests (5 points) - pytest and vitest tests running in GitHub Actions
 
 Features:
+- [x] Backend unit tests (pytest)
+  - [x] Main health check test
+  - [x] Expense endpoint tests (GET all, GET by ID, POST, PUT, DELETE)
+  - [x] Budget endpoint tests (GET all, GET by ID, POST, DELETE)
+  - [x] Chat endpoint tests (POST, GET, DELETE with auth)
+- [x] Frontend unit tests (vitest)
+  - [x] API mapper utility tests (snake_case/camelCase conversion)
+  - [x] ExpenseHooks tests (React Query hooks)
+  - [x] BudgetHooks tests (React Query hooks)
+- [x] 15+ backend tests, 12+ frontend tests
+- [x] Tests integrated in GitHub Actions
+  - [x] test-api.yml - Runs pytest on API changes
+  - [x] test-client.yml - Runs vitest on client changes
+  - [x] prod-api.yml - Tests before deployment
+  - [x] prod-client.yml - Tests before deployment
+- [x] Pre-commit hooks for local testing (optional)
+- [x] TESTING.md documentation
+- [x] Test commands in package.json and pytest.ini
 
+Test Automation:
+- ✅ Tests run on every push to main/develop
+- ✅ Tests run on all pull requests
+- ✅ Production builds blocked if tests fail
+- ✅ Local git hooks available (`.githooks/pre-commit`)
+
+See [TESTING.md](TESTING.md) for detailed testing guide.
 
 ---
 
