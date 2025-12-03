@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: finance-client
-        image: jesus6190/finance-frontend:1.0.21
+        image: jesus6190/finance-frontend:1.0.36
         ports:
         - containerPort: 80
