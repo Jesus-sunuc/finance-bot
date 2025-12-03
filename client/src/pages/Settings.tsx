@@ -5,6 +5,7 @@ import { useDeleteChatHistory } from "../hooks/ChatHooks";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
 import { useCurrency, type Currency } from "../contexts/CurrencyContext";
+import SelectInput from "../components/ui/SelectInput";
 
 const Settings = () => {
   const { data: expenses } = useExpensesQuery();
@@ -192,24 +193,18 @@ const Settings = () => {
             Display Preferences
           </h3>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Currency
-              </label>
-              <select
-                value={currency}
-                onChange={(e) =>
-                  handleCurrencyChange(e.target.value as Currency)
-                }
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="CAD">CAD ($)</option>
-                <option value="AUD">AUD ($)</option>
-              </select>
-            </div>
+            <SelectInput
+              label="Currency"
+              value={currency}
+              onChange={(e) => handleCurrencyChange(e.target.value as Currency)}
+              options={[
+                { value: "USD", label: "USD ($)" },
+                { value: "EUR", label: "EUR (€)" },
+                { value: "GBP", label: "GBP (£)" },
+                { value: "CAD", label: "CAD ($)" },
+                { value: "AUD", label: "AUD ($)" },
+              ]}
+            />
           </div>
         </div>
 

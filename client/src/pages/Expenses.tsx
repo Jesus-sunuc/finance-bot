@@ -9,6 +9,10 @@ import type { Expense, ExpenseCreate, ExpenseUpdate } from "../models/Expense";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
 import { useCurrency } from "../contexts/CurrencyContext";
+import TextInput from "../components/ui/TextInput";
+import NumberInput from "../components/ui/NumberInput";
+import SelectInput from "../components/ui/SelectInput";
+import DateInput from "../components/ui/DateInput";
 
 const Expenses = () => {
   const { data: expenses } = useExpensesQuery();
@@ -303,72 +307,50 @@ const Expenses = () => {
               {editingId ? "Edit Expense" : "Add Expense"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Merchant
-                </label>
-                <input
-                  type="text"
-                  value={formData.merchant}
-                  onChange={(e) =>
-                    setFormData({ ...formData, merchant: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      amount: parseFloat(e.target.value),
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Category
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                >
-                  <option value="">Select category</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
-                />
-              </div>
+              <TextInput
+                label="Merchant"
+                value={formData.merchant}
+                onChange={(e) =>
+                  setFormData({ ...formData, merchant: e.target.value })
+                }
+                required
+              />
+
+              <NumberInput
+                label="Amount"
+                value={formData.amount}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    amount: parseFloat(e.target.value),
+                  })
+                }
+                prefix="$"
+                step="0.01"
+                required
+              />
+
+              <SelectInput
+                label="Category"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                options={[
+                  { value: "", label: "Select category" },
+                  ...categories.map((cat) => ({ value: cat, label: cat })),
+                ]}
+                required
+              />
+
+              <DateInput
+                label="Date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                required
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Description (optional)
