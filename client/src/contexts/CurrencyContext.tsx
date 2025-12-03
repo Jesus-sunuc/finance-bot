@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 
 export type Currency = "USD" | "EUR" | "GBP" | "CAD" | "AUD";
 

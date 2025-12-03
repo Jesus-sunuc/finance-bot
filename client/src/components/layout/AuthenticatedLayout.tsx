@@ -9,7 +9,7 @@ interface AuthenticatedLayoutProps {
 export const AuthenticatedLayout: FC<AuthenticatedLayoutProps> = ({
   children,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const auth = useAuth();
