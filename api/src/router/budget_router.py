@@ -49,7 +49,6 @@ async def update_budget(budget_id: str, budget: BudgetUpdate, notion_service: No
             category=budget.category,
             amount=budget.amount,
             period=budget.period,
-            spent=budget.spent,
             start_date=budget.start_date
         )
         return updated

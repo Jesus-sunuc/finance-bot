@@ -21,7 +21,6 @@ export interface BudgetUpdate {
   category?: string;
   amount?: number;
   period?: "monthly" | "weekly" | "yearly";
-  spent?: number;
   startDate?: string;
 }
 

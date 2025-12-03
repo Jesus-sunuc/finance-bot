@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import {
   useBudgets,
   useCreateBudget,
+  useUpdateBudget,
   useDeleteBudget,
 } from "../hooks/BudgetHooks";
 import { useExpensesQuery } from "../hooks/ExpenseHooks";
@@ -13,6 +14,7 @@ const Budgets = () => {
   const { data: budgets, isLoading } = useBudgets();
   const { data: expenses } = useExpensesQuery();
   const createBudget = useCreateBudget();
+  const updateBudget = useUpdateBudget();
   const deleteBudget = useDeleteBudget();
 
   const budgetsWithActualSpending = useMemo(() => {
@@ -73,6 +75,8 @@ const Budgets = () => {
   }, [budgetsByMonth]);
 
   const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [formData, setFormData] = useState<BudgetCreate>({
@@ -89,6 +93,23 @@ const Budgets = () => {
       period: "monthly",
       startDate: new Date().toISOString().split("T")[0],
     });
+    setIsEditMode(false);
+    setEditingBudgetId(null);
+  };
+
+  const handleEdit = (budgetId: string) => {
+    const budget = budgetsWithActualSpending?.find((b) => b.id === budgetId);
+    if (budget) {
+      setFormData({
+        category: budget.category,
+        amount: budget.amount,
+        period: budget.period,
+        startDate: new Date(budget.startDate).toISOString().split("T")[0],
+      });
+      setIsEditMode(true);
+      setEditingBudgetId(budgetId);
+      setShowModal(true);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,13 +121,23 @@ const Budgets = () => {
     }
 
     try {
-      await createBudget.mutateAsync(formData);
-      toast.success("Budget created successfully!");
+      if (isEditMode && editingBudgetId) {
+        await updateBudget.mutateAsync({
+          id: editingBudgetId,
+          updates: formData,
+        });
+        toast.success("Budget updated successfully!");
+      } else {
+        await createBudget.mutateAsync(formData);
+        toast.success("Budget created successfully!");
+      }
       setShowModal(false);
       resetForm();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to create budget"
+        error instanceof Error
+          ? error.message
+          : `Failed to ${isEditMode ? "update" : "create"} budget`
       );
     }
   };
@@ -178,7 +209,7 @@ const Budgets = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
             <h2 className="text-xl font-bold text-gray-100 mb-4">
-              Create Budget
+              {isEditMode ? "Edit Budget" : "Create Budget"}
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
@@ -269,10 +300,16 @@ const Budgets = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={createBudget.isPending}
-                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={createBudget.isPending || updateBudget.isPending}
+                  className="flex-1 px-4 py-2 text-gray-200 bg-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createBudget.isPending ? "Creating..." : "Create"}
+                  {isEditMode
+                    ? updateBudget.isPending
+                      ? "Updating..."
+                      : "Update"
+                    : createBudget.isPending
+                      ? "Creating..."
+                      : "Create"}
                 </button>
               </div>
             </form>
@@ -365,6 +402,25 @@ const Budgets = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(budget.percentage)}
+                  <button
+                    onClick={() => handleEdit(budget.id)}
+                    className="text-blue-400 hover:text-blue-300 transition-colors"
+                    aria-label="Edit budget"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
                   <button
                     onClick={() => handleDelete(budget.id)}
                     className="text-red-400 hover:text-red-300 transition-colors"
