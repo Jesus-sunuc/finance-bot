@@ -1,17 +1,53 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useBudgets,
   useCreateBudget,
   useDeleteBudget,
 } from "../hooks/BudgetHooks";
+import { useExpensesQuery } from "../hooks/ExpenseHooks";
 import type { BudgetCreate } from "../models/Budget";
 import toast from "react-hot-toast";
 import ConfirmationModal from "../components/ui/ConfirmationModal";
 
 const Budgets = () => {
   const { data: budgets, isLoading } = useBudgets();
+  const { data: expenses } = useExpensesQuery();
   const createBudget = useCreateBudget();
   const deleteBudget = useDeleteBudget();
+
+  const budgetsWithActualSpending = useMemo(() => {
+    if (!budgets || !expenses) return budgets || [];
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    return budgets.map((budget) => {
+      const categoryExpenses = expenses.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        const isSameMonth =
+          expenseDate.getMonth() === currentMonth &&
+          expenseDate.getFullYear() === currentYear;
+        const isSameCategory =
+          expense.category.toLowerCase() === budget.category.toLowerCase();
+        return isSameMonth && isSameCategory;
+      });
+
+      const actualSpent = categoryExpenses.reduce(
+        (sum, expense) => sum + expense.amount,
+        0
+      );
+
+      const remaining = budget.amount - actualSpent;
+      const percentage = budget.amount > 0 ? (actualSpent / budget.amount) * 100 : 0;
+
+      return {
+        ...budget,
+        spent: actualSpent,
+        remaining,
+        percentage,
+      };
+    });
+  }, [budgets, expenses]);
 
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -109,7 +145,7 @@ const Budgets = () => {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+          className="px-4 py-2 bg-gray-600 text-gray-200 rounded-2xl hover:bg-gray-700 transition-colors cursor-pointer"
         >
           + Create Budget
         </button>
@@ -237,7 +273,7 @@ const Budgets = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
           <p className="text-gray-400 mt-4">Loading budgets...</p>
         </div>
-      ) : !budgets || budgets.length === 0 ? (
+      ) : !budgetsWithActualSpending || budgetsWithActualSpending.length === 0 ? (
         <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
           <svg
             className="w-16 h-16 text-gray-600 mx-auto mb-4"
@@ -268,7 +304,7 @@ const Budgets = () => {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {budgets.map((budget) => (
+          {budgetsWithActualSpending.map((budget) => (
             <div
               key={budget.id}
               className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
@@ -342,7 +378,9 @@ const Budgets = () => {
                     className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
                       budget.percentage || 0
                     )}`}
-                    style={{ width: `${Math.min(budget.percentage || 0, 100)}%` }}
+                    style={{
+                      width: `${Math.min(budget.percentage || 0, 100)}%`,
+                    }}
                   ></div>
                 </div>
               </div>
