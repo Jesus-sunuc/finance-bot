@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendMessage, useDeleteTransaction } from "../hooks/AgentHooks";
-import { useChatMessages, useDeleteChatHistory } from "../hooks/ChatHooks";
+import { useChatMessages } from "../hooks/ChatHooks";
 import ConfirmationModal, {
   type Transaction,
 } from "../components/ConfirmationModal";
@@ -21,7 +21,6 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = useSendMessage();
   const deleteTransactionMutation = useDeleteTransaction();
-  const deleteChatHistory = useDeleteChatHistory();
   const navigate = useNavigate();
 
   const messages = useMemo(
@@ -165,22 +164,6 @@ const Chat = () => {
     setPendingDeletion(null);
   };
 
-  const clearHistory = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to clear all chat history? This cannot be undone."
-      )
-    ) {
-      try {
-        await deleteChatHistory.mutateAsync();
-        setLocalMessages([]);
-        toast.success("Chat history cleared successfully");
-      } catch (error) {
-        console.error("Error clearing chat history:", error);
-        toast.error("Failed to clear chat history");
-      }
-    }
-  };
 
   return (
     <div className="flex flex-col h-full md:h-[calc(100vh-8rem)]">
@@ -193,28 +176,6 @@ const Chat = () => {
             Talk to your financial assistant
           </p>
         </div>
-        {messages.length > 0 && (
-          <button
-            onClick={clearHistory}
-            className="px-3 py-1.5 md:px-4 md:py-2 bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
-            title="Clear chat history"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            <span className="hidden sm:inline">Clear History</span>
-          </button>
-        )}
       </div>
 
       <ConfirmationModal
