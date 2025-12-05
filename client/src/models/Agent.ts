@@ -23,6 +23,8 @@ export interface AddExpenseRequest {
 
 export interface DeleteTransactionRequest {
   query: string;
+  confirmed?: boolean;
+  transaction_id?: string;
 }
 
 export interface GenerateReportRequest {

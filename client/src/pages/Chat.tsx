@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSendMessage } from "../hooks/AgentHooks";
+import { useSendMessage, useDeleteTransaction } from "../hooks/AgentHooks";
 import { useChatMessages, useDeleteChatHistory } from "../hooks/ChatHooks";
 import BudgetSidebar from "../components/BudgetSidebar";
+import ConfirmationModal, {
+  type Transaction,
+} from "../components/ConfirmationModal";
 import type { ChatMessage } from "../models/Agent";
 import type { Budget } from "../models/Budget";
 import toast from "react-hot-toast";
@@ -13,8 +16,14 @@ const Chat = () => {
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [budgetSidebarOpen, setBudgetSidebarOpen] = useState(false);
   const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [pendingDeletion, setPendingDeletion] = useState<{
+    query: string;
+    transaction: Transaction | null;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sendMessageMutation = useSendMessage();
+  const deleteTransactionMutation = useDeleteTransaction();
   const deleteChatHistory = useDeleteChatHistory();
   const navigate = useNavigate();
 
@@ -58,7 +67,25 @@ const Chat = () => {
 
       setLocalMessages((prev) => [...prev, assistantMessage]);
 
-      if (response.action_taken === "set_budget" && response.data?.budget) {
+      // Handle deletion confirmation (axios converts to camelCase automatically)
+      const actionTaken = (response as any).actionTaken;
+      const needsConfirmation = (response.data as any)?.needsConfirmation;
+      const transactionToDelete = (response.data as any)?.transactionToDelete;
+
+      if (
+        actionTaken === "delete_transaction" &&
+        needsConfirmation &&
+        transactionToDelete
+      ) {
+        const transaction = transactionToDelete as Transaction;
+        setPendingDeletion({
+          query: currentMessage,
+          transaction: transaction,
+        });
+        setConfirmationModalOpen(true);
+      }
+
+      if (actionTaken === "set_budget" && response.data?.budget) {
         setCurrentBudget(response.data.budget as Budget);
         setBudgetSidebarOpen(true);
       }
@@ -85,6 +112,40 @@ const Chat = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleConfirmDeletion = async () => {
+    if (!pendingDeletion) return;
+
+    try {
+      const response = await deleteTransactionMutation.mutateAsync({
+        query: pendingDeletion.query,
+        confirmed: true,
+        transaction_id: pendingDeletion.transaction?.id,
+      });
+
+      const assistantMessage: ChatMessage = {
+        role: "assistant",
+        content: response.message,
+        timestamp: new Date().toISOString(),
+        reasoning: response.reasoning,
+      };
+
+      setLocalMessages((prev) => [...prev, assistantMessage]);
+      toast.success("Transaction deleted successfully");
+      setConfirmationModalOpen(false);
+      setPendingDeletion(null);
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast.error("Failed to delete transaction");
+      setConfirmationModalOpen(false);
+      setPendingDeletion(null);
+    }
+  };
+
+  const handleCancelDeletion = () => {
+    setConfirmationModalOpen(false);
+    setPendingDeletion(null);
   };
 
   const clearHistory = async () => {
@@ -143,6 +204,15 @@ const Chat = () => {
         budget={currentBudget}
         isOpen={budgetSidebarOpen}
         onClose={() => setBudgetSidebarOpen(false)}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmationModalOpen}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        transaction={pendingDeletion?.transaction || undefined}
+        onConfirm={handleConfirmDeletion}
+        onCancel={handleCancelDeletion}
       />
 
       <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-3 md:p-6 overflow-y-auto mb-4">

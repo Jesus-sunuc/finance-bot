@@ -36,37 +36,97 @@ class AgentService:
     def search_transactions(self, query: str) -> list:
         try:
             all_expenses = self.notion_service.get_all_expenses()
-            
             query_lower = query.lower()
             matching = []
-            
+
             for expense in all_expenses:
                 merchant = expense.get('merchant', '').lower()
                 category = expense.get('category', '').lower()
                 description = expense.get('description', '').lower()
                 amount_str = str(expense.get('amount', ''))
-                
-                if (query_lower in merchant or 
-                    query_lower in category or 
+
+                if (query_lower in merchant or
+                    query_lower in category or
                     query_lower in description or
                     query_lower in amount_str):
                     matching.append(expense)
-            
+
             return matching
         except Exception as e:
             print(f"Error searching transactions: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
-    def delete_transaction_by_query(self, query: str) -> Dict[str, Any]:
-        matches = self.search_transactions(query)
-        
+    def extract_search_terms(self, deletion_request: str) -> str:
+        """Extract relevant search terms from a deletion request using LLM"""
+        system_prompt = """You are a search query extractor. Given a user's deletion request, extract ONLY the key search terms that identify the transaction.
+
+Examples:
+- "Delete Mexican store expense" → "mexican store"
+- "Remove the $99.99 food expense" → "99.99 food"
+- "Delete walmart transaction" → "walmart"
+- "Remove my target purchase from yesterday" → "target"
+- "Delete the $45 groceries at whole foods" → "45 whole foods groceries"
+
+Return ONLY the search terms, nothing else. Be concise but include relevant identifiers like merchant name, amount, or category."""
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Extract search terms from: {deletion_request}"}
+                ],
+                max_tokens=50
+            )
+
+            search_terms = response.choices[0].message.content.strip()
+            return search_terms
+        except Exception as e:
+            print(f"Error extracting search terms: {e}")
+            keywords_to_remove = ['delete', 'remove', 'the', 'expense', 'transaction', 'purchase']
+            terms = deletion_request.lower()
+            for keyword in keywords_to_remove:
+                terms = terms.replace(keyword, '')
+            return terms.strip()
+
+    def delete_transaction_by_query(self, query: str, confirmed: bool = False, transaction_id: Optional[str] = None) -> Dict[str, Any]:
+        if confirmed and transaction_id:
+            try:
+                # Get the transaction details before deleting for the response message
+                transaction = self.notion_service.get_expense_by_id(transaction_id)
+                if not transaction:
+                    return {
+                        "success": False,
+                        "message": "Transaction not found"
+                    }
+
+                self.notion_service.delete_expense(transaction_id)
+                return {
+                    "success": True,
+                    "message": f"Deleted ${transaction['amount']:.2f} at {transaction['merchant']}",
+                    "deleted_transaction": transaction
+                }
+            except Exception as e:
+                print(f"Error deleting transaction: {e}")
+                import traceback
+                traceback.print_exc()
+                return {
+                    "success": False,
+                    "message": f"Failed to delete transaction: {str(e)}"
+                }
+
+        search_terms = self.extract_search_terms(query)
+        matches = self.search_transactions(search_terms)
+
         if not matches:
             return {
                 "success": False,
-                "message": "No matching transaction found",
+                "message": f"No matching transaction found for '{search_terms}'",
                 "matches": []
             }
-        
+
         if len(matches) > 1:
             return {
                 "success": False,
@@ -74,8 +134,18 @@ class AgentService:
                 "matches": matches[:3],
                 "needs_confirmation": True
             }
-        
+
         transaction = matches[0]
+
+        if not confirmed:
+            return {
+                "success": False,
+                "needs_confirmation": True,
+                "message": f"Are you sure you want to delete this transaction?",
+                "transaction_to_delete": transaction,
+                "matches": [transaction]
+            }
+
         try:
             self.notion_service.delete_expense(transaction['id'])
             return {
@@ -202,9 +272,10 @@ class AgentService:
     
     def _plan(self, user_message: str) -> Dict[str, Any]:
         system_prompt = """You are a financial assistant AI. Analyze the user's message and determine their intent.
-        
+
 Possible intents:
 - ADD_EXPENSE: User is reporting a spending/expense
+- DELETE_EXPENSE: User wants to delete or remove an expense/transaction (e.g., "delete the Mexican store expense", "remove $99.99 food expense")
 - SET_BUDGET: User wants to set or update a budget goal (e.g., "set my dining budget to $400")
 - GET_BUDGET: User wants to see their budget
 - GET_EXPENSES: User wants to see their expenses
@@ -212,7 +283,7 @@ Possible intents:
 
 Respond in JSON format:
 {
-    "intent": "ADD_EXPENSE|SET_BUDGET|GET_BUDGET|GET_EXPENSES|GENERAL_RESPONSE",
+    "intent": "ADD_EXPENSE|DELETE_EXPENSE|SET_BUDGET|GET_BUDGET|GET_EXPENSES|GENERAL_RESPONSE",
     "reasoning": "Brief explanation of why you chose this intent",
     "confidence": 0.0-1.0
 }"""
@@ -262,9 +333,35 @@ Respond in JSON format:
                     "data": None
                 }
         
+        elif intent == "DELETE_EXPENSE":
+            delete_result = self.delete_transaction_by_query(user_message)
+
+            if delete_result.get("needs_confirmation"):
+                return {
+                    "action": ActionType.DELETE_TRANSACTION,
+                    "reasoning": reasoning,
+                    "success": False,
+                    "needs_confirmation": True,
+                    "data": delete_result
+                }
+            elif delete_result.get("success"):
+                return {
+                    "action": ActionType.DELETE_TRANSACTION,
+                    "reasoning": reasoning,
+                    "success": True,
+                    "data": delete_result
+                }
+            else:
+                return {
+                    "action": ActionType.ERROR,
+                    "reasoning": "Failed to delete transaction",
+                    "success": False,
+                    "data": delete_result
+                }
+
         elif intent == "SET_BUDGET":
             budget_result = self.set_budget_goal(user_message)
-            
+
             if budget_result.get("success"):
                 return {
                     "action": ActionType.SET_BUDGET,
@@ -279,7 +376,7 @@ Respond in JSON format:
                     "success": False,
                     "data": budget_result
                 }
-        
+
         elif intent == "GET_BUDGET":
             return {
                 "action": ActionType.GET_BUDGET,
@@ -310,25 +407,48 @@ Respond in JSON format:
         success = result.get("success", False)
         reasoning = result.get("reasoning", "")
         data = result.get("data", {})
-        
+        needs_confirmation = result.get("needs_confirmation", False)
+
         if action == ActionType.ADD_EXPENSE and success:
             expense = data.get("expense", {})
             message = f"I've added your expense: ${expense.get('amount', 0):.2f} at {expense.get('merchant', 'Unknown')} for {expense.get('category', 'Uncategorized')}."
-        
+
+        elif action == ActionType.DELETE_TRANSACTION:
+            if needs_confirmation:
+                matches = data.get("matches", [])
+                transaction_to_delete = data.get("transaction_to_delete")
+
+                if len(matches) > 1:
+                    message = data.get("message", "Found multiple matching transactions.")
+                    if matches:
+                        message += "\n\nMatching transactions:"
+                        for i, match in enumerate(matches[:3], 1):
+                            message += f"\n{i}. ${match.get('amount', 0):.2f} at {match.get('merchant', 'Unknown')} on {match.get('date', 'Unknown date')}"
+                        message += "\n\nPlease be more specific about which transaction you want to delete."
+                elif transaction_to_delete:
+                    message = data.get("message", "Are you sure you want to delete this transaction?")
+                else:
+                    message = data.get("message", "Please confirm the deletion.")
+            elif success:
+                deleted = data.get("deleted_transaction", {})
+                message = f"I've removed the ${deleted.get('amount', 0):.2f} {deleted.get('category', 'expense')} at {deleted.get('merchant', 'Unknown')} from your records. Let me know if you need anything else!"
+            else:
+                message = data.get("message", "I couldn't find that transaction. Please try being more specific.")
+
         elif action == ActionType.SET_BUDGET and success:
             budget = data.get("budget", {})
             action_type = data.get("action", "set")
             message = data.get("message", f"Budget {action_type} successfully!")
-        
+
         elif action == ActionType.ERROR:
-            message = "I had trouble understanding that expense. Could you try rephrasing? For example: 'I spent $45 on groceries at Whole Foods'"
-        
+            message = data.get("message", "I had trouble understanding that expense. Could you try rephrasing? For example: 'I spent $45 on groceries at Whole Foods'")
+
         elif action == ActionType.GENERAL_RESPONSE:
             message = data.get("response", "I'm here to help with your finances!")
-        
+
         else:
             message = data.get("message", "I'm working on that feature!")
-        
+
         return ChatResponse(
             message=message,
             reasoning=reasoning,

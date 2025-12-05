@@ -148,34 +148,51 @@ async def get_recent_decisions(limit: int = 10):
 @handle_notion_errors
 async def delete_transaction(request: DeleteTransactionRequest):
     try:
-        result = agent_service.delete_transaction_by_query(request.query)
-        
+        result = agent_service.delete_transaction_by_query(
+            query=request.query,
+            confirmed=request.confirmed,
+            transaction_id=request.transaction_id
+        )
+
         from src.models.agent import ActionType, AgentState
-        
+
         if result.get("needs_confirmation"):
             decision = AgentDecision(
                 user_message=request.query,
                 agent_state=AgentState.COMPLETED,
-                llm_reasoning="Multiple matches found, needs user confirmation",
+                llm_reasoning="Needs user confirmation before deletion",
                 action_taken=ActionType.DELETE_TRANSACTION,
                 result=result
             )
             agent_repository.log_decision(decision)
-            
+
             matches = result.get("matches", [])
-            match_list = "\n".join([
-                f"- ${m['amount']:.2f} at {m['merchant']} on {m['date']}"
-                for m in matches
-            ])
-            
-            return ChatResponse(
-                message=f"I found {len(matches)} matching transactions:\n{match_list}\n\nPlease be more specific about which one to delete.",
-                reasoning="Multiple matches require clarification",
-                action_taken=ActionType.DELETE_TRANSACTION,
-                state=AgentState.COMPLETED,
-                data=result
-            )
-        
+            transaction_to_delete = result.get("transaction_to_delete")
+
+            if len(matches) > 1:
+                # Multiple matches - ask user to be more specific
+                match_list = "\n".join([
+                    f"- ${m['amount']:.2f} at {m['merchant']} on {m['date']}"
+                    for m in matches
+                ])
+
+                return ChatResponse(
+                    message=f"I found {len(matches)} matching transactions:\n{match_list}\n\nPlease be more specific about which one to delete.",
+                    reasoning="Multiple matches require clarification",
+                    action_taken=ActionType.DELETE_TRANSACTION,
+                    state=AgentState.COMPLETED,
+                    data=result
+                )
+            else:
+                # Single match - needs confirmation
+                return ChatResponse(
+                    message=result.get("message", "Please confirm deletion"),
+                    reasoning="Awaiting user confirmation",
+                    action_taken=ActionType.DELETE_TRANSACTION,
+                    state=AgentState.COMPLETED,
+                    data=result
+                )
+
         if not result.get("success"):
             decision = AgentDecision(
                 user_message=request.query,
@@ -185,7 +202,7 @@ async def delete_transaction(request: DeleteTransactionRequest):
                 result=result
             )
             agent_repository.log_decision(decision)
-            
+
             return ChatResponse(
                 message=result.get("message", "Transaction not found"),
                 reasoning="No matching transaction",
@@ -193,7 +210,7 @@ async def delete_transaction(request: DeleteTransactionRequest):
                 state=AgentState.COMPLETED,
                 data=result
             )
-        
+
         deleted = result.get("deleted_transaction", {})
         decision = AgentDecision(
             user_message=request.query,
@@ -203,7 +220,7 @@ async def delete_transaction(request: DeleteTransactionRequest):
             result=result
         )
         agent_repository.log_decision(decision)
-        
+
         return ChatResponse(
             message=result.get("message", "Transaction deleted successfully"),
             reasoning="Transaction deleted",

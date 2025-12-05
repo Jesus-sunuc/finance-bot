@@ -55,6 +55,8 @@ class AddExpenseRequest(BaseModel):
 
 class DeleteTransactionRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=500, description="Description of transaction to delete")
+    confirmed: bool = Field(default=False, description="Whether the deletion is confirmed by user")
+    transaction_id: Optional[str] = Field(default=None, description="Specific transaction ID to delete (when confirmed)")
 
 class GenerateReportRequest(BaseModel):
     report_type: str = Field(default="monthly", pattern="^(monthly|category|trends)$")
