@@ -49,7 +49,6 @@ export default function BudgetSidebar({
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
           isVisible ? "bg-opacity-50" : "bg-opacity-0 pointer-events-none"
@@ -57,15 +56,13 @@ export default function BudgetSidebar({
         onClick={handleClose}
       />
 
-      {/* Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
           isVisible ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+          <div className="bg-blue-600 text-white p-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Budget Set!</h2>
               <button
@@ -90,7 +87,6 @@ export default function BudgetSidebar({
             </div>
           </div>
 
-          {/* Content */}
           {budget && (
             <div className="flex-1 overflow-y-auto p-6">
               <div
@@ -110,7 +106,6 @@ export default function BudgetSidebar({
                 </p>
               </div>
 
-              {/* Budget Details */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Budget Amount:</span>
@@ -138,7 +133,6 @@ export default function BudgetSidebar({
                   </span>
                 </div>
 
-                {/* Progress Bar */}
                 <div className="mt-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">
@@ -157,12 +151,13 @@ export default function BudgetSidebar({
                       className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
                         budget.percentage || 0
                       )}`}
-                      style={{ width: `${Math.min(budget.percentage || 0, 100)}%` }}
+                      style={{
+                        width: `${Math.min(budget.percentage || 0, 100)}%`,
+                      }}
                     />
                   </div>
                 </div>
 
-                {/* Status Message */}
                 <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
                   <p className="text-sm text-blue-800">
                     {budget.percentage < 70
@@ -176,7 +171,6 @@ export default function BudgetSidebar({
             </div>
           )}
 
-          {/* Footer */}
           <div className="border-t p-6 bg-gray-50">
             <button
               onClick={handleClose}

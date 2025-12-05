@@ -8,9 +8,21 @@ export interface ChatMessage {
 export interface ChatResponse {
   message: string;
   reasoning?: string;
-  action_taken: ActionType;
+  actionTaken: ActionType;
   state: AgentState;
-  data?: Record<string, unknown>;
+  data?: {
+    needsConfirmation?: boolean;
+    transactionToDelete?: {
+      id: string;
+      amount: number;
+      merchant: string;
+      category?: string;
+      date?: string;
+    };
+    budget?: unknown;
+    navigate_to?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface ChatRequest {

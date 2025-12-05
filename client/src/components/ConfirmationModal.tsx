@@ -51,7 +51,6 @@ export default function ConfirmationModal({
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black transition-opacity duration-200 z-50 ${
           isVisible ? "bg-opacity-60" : "bg-opacity-0"
@@ -59,14 +58,12 @@ export default function ConfirmationModal({
         onClick={handleCancel}
       />
 
-      {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           className={`bg-gray-800 border border-gray-700 rounded-lg shadow-2xl max-w-md w-full transform transition-all duration-200 ${
             isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
           }`}
         >
-          {/* Header */}
           <div className="p-6 border-b border-gray-700">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-red-900/30 flex items-center justify-center flex-shrink-0">

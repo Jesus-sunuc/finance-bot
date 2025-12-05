@@ -67,25 +67,19 @@ const Chat = () => {
 
       setLocalMessages((prev) => [...prev, assistantMessage]);
 
-      // Handle deletion confirmation (axios converts to camelCase automatically)
-      const actionTaken = (response as any).actionTaken;
-      const needsConfirmation = (response.data as any)?.needsConfirmation;
-      const transactionToDelete = (response.data as any)?.transactionToDelete;
-
       if (
-        actionTaken === "delete_transaction" &&
-        needsConfirmation &&
-        transactionToDelete
+        response.actionTaken === "delete_transaction" &&
+        response.data?.needsConfirmation &&
+        response.data?.transactionToDelete
       ) {
-        const transaction = transactionToDelete as Transaction;
         setPendingDeletion({
           query: currentMessage,
-          transaction: transaction,
+          transaction: response.data.transactionToDelete as Transaction,
         });
         setConfirmationModalOpen(true);
       }
 
-      if (actionTaken === "set_budget" && response.data?.budget) {
+      if (response.actionTaken === "set_budget" && response.data?.budget) {
         setCurrentBudget(response.data.budget as Budget);
         setBudgetSidebarOpen(true);
       }
