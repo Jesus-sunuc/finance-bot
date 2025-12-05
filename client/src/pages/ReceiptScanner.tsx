@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAddExpenseFromText } from "../hooks/AgentHooks";
 import {
-  useUploadReceipt,
   useUploadAndSaveReceipt,
 } from "../hooks/ReceiptHooks";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,7 +25,6 @@ const ReceiptScanner = () => {
   const [activeTab, setActiveTab] = useState<"text" | "image">("image");
 
   const addExpenseMutation = useAddExpenseFromText();
-  const uploadReceiptMutation = useUploadReceipt();
   const uploadAndSaveMutation = useUploadAndSaveReceipt();
   const queryClient = useQueryClient();
 
@@ -41,18 +39,6 @@ const ReceiptScanner = () => {
     }
   };
 
-  const handleUploadReceipt = async () => {
-    if (!selectedFile) return;
-
-    try {
-      const result = await uploadReceiptMutation.mutateAsync(selectedFile);
-      if (result.success && result.expense_data) {
-        setExtractedData(result.expense_data);
-      }
-    } catch (error) {
-      console.error("Failed to upload receipt:", error);
-    }
-  };
 
   const handleUploadAndSave = async () => {
     if (!selectedFile) return;
@@ -163,15 +149,6 @@ const ReceiptScanner = () => {
 
           {selectedFile && (
             <div className="flex gap-3">
-              <button
-                onClick={handleUploadReceipt}
-                disabled={uploadReceiptMutation.isPending}
-                className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-gray-100 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploadReceiptMutation.isPending
-                  ? "Processing..."
-                  : "Extract Data (Preview)"}
-              </button>
               <button
                 onClick={handleUploadAndSave}
                 disabled={uploadAndSaveMutation.isPending}
