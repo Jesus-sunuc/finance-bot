@@ -85,13 +85,6 @@ const Dashboard = () => {
     };
   }, [expenses, budgetsWithActualSpending, selectedDate]);
 
-  const topBudgets = useMemo(() => {
-    if (!budgetsWithActualSpending) return [];
-    return [...budgetsWithActualSpending]
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 3);
-  }, [budgetsWithActualSpending]);
-
   const getProgressColor = (percentage: number): string => {
     if (percentage < 70) return "bg-green-500";
     if (percentage < 90) return "bg-yellow-500";
