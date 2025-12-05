@@ -94,7 +94,6 @@ Return ONLY the search terms, nothing else. Be concise but include relevant iden
     def delete_transaction_by_query(self, query: str, confirmed: bool = False, transaction_id: Optional[str] = None) -> Dict[str, Any]:
         if confirmed and transaction_id:
             try:
-                # Get the transaction details before deleting for the response message
                 transaction = self.notion_service.get_expense_by_id(transaction_id)
                 if not transaction:
                     return {

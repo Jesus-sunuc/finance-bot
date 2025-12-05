@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSendMessage, useDeleteTransaction } from "../hooks/AgentHooks";
 import { useChatMessages, useDeleteChatHistory } from "../hooks/ChatHooks";
-import BudgetSidebar from "../components/BudgetSidebar";
 import ConfirmationModal, {
   type Transaction,
 } from "../components/ConfirmationModal";
@@ -14,8 +13,6 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const { data: savedMessages = [], isLoading, error } = useChatMessages();
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
-  const [budgetSidebarOpen, setBudgetSidebarOpen] = useState(false);
-  const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [pendingDeletion, setPendingDeletion] = useState<{
     query: string;
@@ -80,14 +77,40 @@ const Chat = () => {
       }
 
       if (response.actionTaken === "set_budget" && response.data?.budget) {
-        setCurrentBudget(response.data.budget as Budget);
-        setBudgetSidebarOpen(true);
-      }
-
-      if (response.data?.navigate_to) {
-        setTimeout(() => {
-          navigate(response.data!.navigate_to as string);
-        }, 1500);
+        const budget = response.data.budget as Budget;
+        toast.success(
+          (t) => (
+            <div className="flex flex-col gap-2">
+              <div>
+                <strong className="text-gray-100">Budget set!</strong>
+                <div className="text-sm mt-1 text-gray-300">
+                  {budget.category}: ${budget.amount} per month
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate("/budgets");
+                }}
+                className="px-3 py-1.5 bg-primary-600 text-white rounded font-medium hover:bg-primary-700 transition-colors text-sm"
+              >
+                View Budget
+              </button>
+            </div>
+          ),
+          {
+            duration: 5000,
+            style: {
+              background: "#374151",
+              color: "#fff",
+              border: "1px solid #4B5563",
+            },
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#fff",
+            },
+          }
+        );
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -193,12 +216,6 @@ const Chat = () => {
           </button>
         )}
       </div>
-
-      <BudgetSidebar
-        budget={currentBudget}
-        isOpen={budgetSidebarOpen}
-        onClose={() => setBudgetSidebarOpen(false)}
-      />
 
       <ConfirmationModal
         isOpen={confirmationModalOpen}
