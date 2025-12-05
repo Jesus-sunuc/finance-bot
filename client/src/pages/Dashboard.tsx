@@ -342,7 +342,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {topBudgets.map((budget) => (
+            {budgetsWithActualSpending.map((budget) => (
               <div
                 key={budget.id}
                 className="bg-gray-700 rounded-lg p-5 border border-gray-600 hover:border-gray-500 transition-colors"
