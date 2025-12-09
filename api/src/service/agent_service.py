@@ -33,22 +33,42 @@ class AgentService:
         self.current_state = AgentState.COMPLETED
         return response
     
-    def search_transactions(self, query: str) -> list:
+    def search_transactions(self, query: str, amount: Optional[float] = None, merchant: Optional[str] = None, date: Optional[str] = None) -> list:
+        """Search transactions with optional specific filters"""
         try:
             all_expenses = self.notion_service.get_all_expenses()
             query_lower = query.lower()
             matching = []
 
             for expense in all_expenses:
-                merchant = expense.get('merchant', '').lower()
-                category = expense.get('category', '').lower()
-                description = expense.get('description', '').lower()
-                amount_str = str(expense.get('amount', ''))
+                # If specific filters are provided, use exact matching
+                if amount is not None:
+                    if abs(expense.get('amount', 0) - amount) > 0.01:  # Allow small floating point differences
+                        continue
+                
+                if merchant is not None:
+                    expense_merchant = expense.get('merchant', '').lower()
+                    if merchant.lower() not in expense_merchant:
+                        continue
+                
+                if date is not None:
+                    if expense.get('date', '') != date:
+                        continue
+                
+                # If no specific filters, do general search
+                if amount is None and merchant is None and date is None:
+                    merchant_field = expense.get('merchant', '').lower()
+                    category_field = expense.get('category', '').lower()
+                    description_field = expense.get('description', '').lower()
+                    amount_str = str(expense.get('amount', ''))
 
-                if (query_lower in merchant or
-                    query_lower in category or
-                    query_lower in description or
-                    query_lower in amount_str):
+                    if (query_lower in merchant_field or
+                        query_lower in category_field or
+                        query_lower in description_field or
+                        query_lower in amount_str):
+                        matching.append(expense)
+                else:
+                    # All filters passed
                     matching.append(expense)
 
             return matching
@@ -58,38 +78,52 @@ class AgentService:
             traceback.print_exc()
             return []
     
-    def extract_search_terms(self, deletion_request: str) -> str:
-        """Extract relevant search terms from a deletion request using LLM"""
-        system_prompt = """You are a search query extractor. Given a user's deletion request, extract ONLY the key search terms that identify the transaction.
+    def extract_deletion_details(self, deletion_request: str) -> Dict[str, Any]:
+        """Extract structured transaction details from deletion request using LLM"""
+        system_prompt = """You are a transaction detail extractor. Given a user's deletion request, extract the transaction details.
+
+Extract:
+- amount: The dollar amount (number only, no $) - ONLY if explicitly mentioned
+- merchant: The merchant/store name - ONLY if explicitly mentioned
+- date: The date in YYYY-MM-DD format - ONLY if explicitly mentioned
+- query: A general search term if specific details aren't provided
 
 Examples:
-- "Delete Mexican store expense" → "mexican store"
-- "Remove the $99.99 food expense" → "99.99 food"
-- "Delete walmart transaction" → "walmart"
-- "Remove my target purchase from yesterday" → "target"
-- "Delete the $45 groceries at whole foods" → "45 whole foods groceries"
+- "Delete my $65.00 at Gas station on 2025-11-10" → {"amount": 65.00, "merchant": "Gas station", "date": "2025-11-10"}
+- "Delete Mexican store expense" → {"query": "mexican store"}
+- "Remove the $99.99 food expense" → {"amount": 99.99, "query": "food"}
+- "Delete walmart transaction" → {"merchant": "walmart"}
 
-Return ONLY the search terms, nothing else. Be concise but include relevant identifiers like merchant name, amount, or category."""
+Return ONLY valid JSON with extracted fields. Include only fields that are explicitly mentioned."""
 
         try:
             response = self.client.chat.completions.create(
                 model="gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Extract search terms from: {deletion_request}"}
+                    {"role": "user", "content": f"Extract details from: {deletion_request}"}
                 ],
-                max_tokens=50
+                max_tokens=100
             )
 
-            search_terms = response.choices[0].message.content.strip()
-            return search_terms
+            import json
+            result = json.loads(response.choices[0].message.content.strip())
+            return result
         except Exception as e:
-            print(f"Error extracting search terms: {e}")
-            keywords_to_remove = ['delete', 'remove', 'the', 'expense', 'transaction', 'purchase']
-            terms = deletion_request.lower()
-            for keyword in keywords_to_remove:
-                terms = terms.replace(keyword, '')
-            return terms.strip()
+            print(f"Error extracting deletion details: {e}")
+            # Fallback to simple extraction
+            result = {"query": deletion_request}
+            
+            # Try to extract amount with regex
+            import re
+            amount_match = re.search(r'\$?(\d+\.?\d*)', deletion_request)
+            if amount_match:
+                try:
+                    result["amount"] = float(amount_match.group(1))
+                except ValueError:
+                    pass
+            
+            return result
 
     def delete_transaction_by_query(self, query: str, confirmed: bool = False, transaction_id: Optional[str] = None) -> Dict[str, Any]:
         if confirmed and transaction_id:
@@ -116,13 +150,31 @@ Return ONLY the search terms, nothing else. Be concise but include relevant iden
                     "message": f"Failed to delete transaction: {str(e)}"
                 }
 
-        search_terms = self.extract_search_terms(query)
-        matches = self.search_transactions(search_terms)
+        # Extract structured details from the query
+        details = self.extract_deletion_details(query)
+        
+        # Search with structured filters
+        matches = self.search_transactions(
+            query=details.get("query", query),
+            amount=details.get("amount"),
+            merchant=details.get("merchant"),
+            date=details.get("date")
+        )
 
         if not matches:
+            search_description = []
+            if details.get("amount"):
+                search_description.append(f"${details['amount']:.2f}")
+            if details.get("merchant"):
+                search_description.append(f"at {details['merchant']}")
+            if details.get("date"):
+                search_description.append(f"on {details['date']}")
+            
+            search_str = " ".join(search_description) if search_description else query
+            
             return {
                 "success": False,
-                "message": f"No matching transaction found for '{search_terms}'",
+                "message": f"No matching transaction found for '{search_str}'",
                 "matches": []
             }
 
